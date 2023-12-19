@@ -38,8 +38,8 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # ENV
-src/config/environments/*.env
-!src/config/environments/sample.env
+src/configs/environments/*.env
+!src/configs/environments/sample.env
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
