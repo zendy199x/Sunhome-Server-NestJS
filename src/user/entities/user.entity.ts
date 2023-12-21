@@ -1,8 +1,9 @@
+import { BaseEntity } from '@/commons/entities/base.entity';
 import { TableDB } from '@/commons/enums/table-db.enum';
 import { UserRole } from '@/commons/enums/user-role.enum';
 import { File } from '@/file/entities/file.entity';
 import { Exclude } from 'class-transformer';
-import { BaseEntity, Column, DeleteDateColumn, Entity, Index, JoinColumn, OneToOne } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, Index, JoinColumn, OneToOne } from 'typeorm';
 
 @Entity(TableDB.USER)
 export class User extends BaseEntity {
