@@ -1,3 +1,4 @@
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
 import { PostgresErrorCode } from '@/commons/enums/postgres-error-code.enum';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
@@ -27,6 +28,13 @@ export class AuthService {
     private jwtService: JwtService,
     private userService: UserService
   ) {}
+
+  private async verifyPassword(plainTextPassword: string, hashedPassword: string) {
+    const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
+    if (!isPasswordMatching) {
+      throw new BadRequestException('Wrong credentials provided');
+    }
+  }
 
   async signUp(createUserDto: CreateUserDto, avatar: Express.Multer.File) {
     const { username, password, role } = createUserDto;
@@ -106,10 +114,23 @@ export class AuthService {
     }
   }
 
-  private async verifyPassword(plainTextPassword: string, hashedPassword: string) {
-    const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
-    if (!isPasswordMatching) {
-      throw new BadRequestException('Wrong credentials provided');
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { username, newPassword } = resetPasswordDto;
+
+    const user: User = await this.userService.findUserByUsername(username);
+
+    if (!user) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('User'));
     }
+
+    const salt = await bcrypt.genSalt();
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+    await this.userRepository.save({
+      ...user,
+      password: hashedNewPassword,
+    });
+
+    return 'Password has been changed';
   }
 }

@@ -1,16 +1,10 @@
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { AuthService } from '@/auth/auth.service';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
+import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
 import { PublicFileValidatorInterceptor } from '@/interceptors/public-file-validator.interceptor';
-import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -36,5 +30,10 @@ export class AuthController {
   @Post('/sign-in')
   signIn(@Body() authCredentialsDto: AuthCredentialsDto) {
     return this.authService.signIn(authCredentialsDto);
+  }
+
+  @Post('/reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<string> {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }
