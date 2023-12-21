@@ -4,7 +4,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as Sentry from '@sentry/node';
+// import * as Sentry from '@sentry/node';
 import { config } from 'aws-sdk';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
@@ -21,9 +21,9 @@ async function bootstrap() {
 
   const configService = app.get<ConfigService>(ConfigService);
 
-  Sentry.init({
-    dsn: process.env.SENTRY_DNS,
-  });
+  // Sentry.init({
+  //   dsn: process.env.SENTRY_DNS,
+  // });
 
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
