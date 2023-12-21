@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/node';
-// import { config } from 'aws-sdk';
+import { config } from 'aws-sdk';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
@@ -31,11 +31,11 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
 
-  // config.update({
-  //   accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
-  //   secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
-  //   region: configService.get('AWS_REGION'),
-  // });
+  config.update({
+    accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
+    secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
+    region: configService.get('AWS_REGION'),
+  });
 
   const configSwagger = new DocumentBuilder()
     .addBearerAuth()

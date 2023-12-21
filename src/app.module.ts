@@ -1,10 +1,13 @@
+import { AuthModule } from '@/auth/auth.module';
 import configuration from '@/configs/configuration';
+import { DatabaseModule } from '@/database/sql/database.module';
+import { FileModule } from '@/file/file.module';
 import { configValidationSchema } from '@/schemas/config.schema';
+import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -14,8 +17,11 @@ import { UserModule } from './user/user.module';
       envFilePath: `src/configs/environments/${process.env.NODE_ENV}.env`,
       validationSchema: configValidationSchema,
     }),
+    ScheduleModule.forRoot(),
+    DatabaseModule,
     AuthModule,
     UserModule,
+    FileModule,
   ],
   controllers: [AppController],
 })

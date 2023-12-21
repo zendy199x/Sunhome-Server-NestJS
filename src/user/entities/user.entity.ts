@@ -15,18 +15,6 @@ export class User extends BaseEntity {
   @Exclude({ toPlainOnly: true })
   password: string;
 
-  @Column({ nullable: true })
-  phone: string;
-
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column({ nullable: true })
-  fullName: string;
-
   @Column({
     type: 'enum',
     enum: UserRole,
