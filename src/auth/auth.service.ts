@@ -1,5 +1,5 @@
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
+import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
 import { PostgresErrorCode } from '@/commons/enums/postgres-error-code.enum';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
 import { User } from '@/user/entities/user.entity';
@@ -131,6 +131,6 @@ export class AuthService {
       password: hashedNewPassword,
     });
 
-    return 'Password has been changed';
+    return this.userService.getDetailUserByUserId(user.id);
   }
 }

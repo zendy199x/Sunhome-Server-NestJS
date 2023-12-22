@@ -22,6 +22,12 @@ export class User extends BaseEntity {
   })
   role: UserRole;
 
+  @Column({
+    type: 'uuid',
+    nullable: true,
+  })
+  avatar_id: string;
+
   @DeleteDateColumn({ type: 'timestamptz', nullable: true })
   deleted_at: Date;
 

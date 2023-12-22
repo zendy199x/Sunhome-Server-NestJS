@@ -1,8 +1,20 @@
+import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/decorators/get-user.decorator';
 import { PublicFileValidatorInterceptor } from '@/interceptors/public-file-validator.interceptor';
 import { User } from '@/user/entities/user.entity';
-import { Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 
@@ -15,8 +27,8 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('avatar'),
     new PublicFileValidatorInterceptor(
-      [/^image\/(?:jpg|jpeg|png|webp|gif|bmp|svg\+xml)$/i],
-      'Only images are allowed',
+      [/^image\/(jpg|jpeg|png|gif|webp)$/i],
+      'Only JPG, JPEG, PNG, GIF and WEBP file are allowed.',
       false
     )
   )
@@ -28,5 +40,31 @@ export class UserController {
     const { id: userId } = user;
 
     return this.userService.addAvatar(userId, avatar);
+  }
+
+  @Delete('/avatar')
+  @UseGuards(JwtAuthGuard)
+  async deleteAvatar(@GetUser() user: User) {
+    const { id: userId } = user;
+
+    return this.userService.deleteAvatar(userId);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getUser(@GetUser() user: User) {
+    const { id: userId } = user;
+    return this.userService.getDetailUserByUserId(userId);
+  }
+
+  @Get('/:userId')
+  getUserById(@Param('userId') userId: string) {
+    return this.userService.getDetailUserByUserId(userId);
+  }
+
+  @Patch()
+  @UseGuards(JwtAuthGuard)
+  updateUser(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateUser(user, updateUserDto);
   }
 }

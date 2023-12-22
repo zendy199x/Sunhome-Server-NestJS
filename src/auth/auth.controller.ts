@@ -1,8 +1,17 @@
 import { AuthService } from '@/auth/auth.service';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
 import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { PublicFileValidatorInterceptor } from '@/interceptors/public-file-validator.interceptor';
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
@@ -33,7 +42,7 @@ export class AuthController {
   }
 
   @Post('/reset-password')
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<string> {
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
 }
