@@ -1,5 +1,7 @@
+import { AuthCredentialsDto } from '@/auth/dto/auth-credentials.dto';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
 import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
+import { IJwtPayload } from '@/auth/interfaces/auth.interfaces';
 import { PostgresErrorCode } from '@/commons/enums/postgres-error-code.enum';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
 import { User } from '@/user/entities/user.entity';
@@ -16,8 +18,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { IJwtPayload } from './interfaces/auth.interfaces';
 
 @Injectable()
 export class AuthService {
@@ -37,9 +37,8 @@ export class AuthService {
   }
 
   async signUp(createUserDto: CreateUserDto, avatar: Express.Multer.File) {
-    const { username, password, role } = createUserDto;
+    const { username, password } = createUserDto;
 
-    // Delete user that is deactivated before create
     const user = await this.userRepository.findOne({
       where: { username },
       withDeleted: true,
@@ -49,7 +48,6 @@ export class AuthService {
       await this.userRepository.delete(user.id);
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -69,7 +67,6 @@ export class AuthService {
 
       return user;
     } catch (error) {
-      // Duplicate user
       if (error?.code === PostgresErrorCode.UniqueViolation) {
         throw new ConflictException('Email already exists');
       }
@@ -109,7 +106,6 @@ export class AuthService {
         access_token: accessToken,
       };
     } catch (error) {
-      console.log(error);
       throw new UnauthorizedException('Please check your login credentials');
     }
   }

@@ -27,14 +27,9 @@ export class UserMigration1703175817991 implements MigrationInterface {
           {
             name: 'role',
             type: 'enum',
-            enum: [UserRole.ADMIN, UserRole.LEADER, UserRole.MEMBER],
+            enum: Object.values(UserRole),
             enumName: 'user_role_enum',
             default: `'${UserRole.MEMBER}'`,
-          },
-          {
-            name: 'avatar_id',
-            type: 'uuid',
-            isNullable: true,
           },
           {
             name: 'created_at',
@@ -51,17 +46,14 @@ export class UserMigration1703175817991 implements MigrationInterface {
             type: 'timestamptz',
             isNullable: true,
           },
+          {
+            name: 'avatar_id',
+            type: 'uuid',
+            isNullable: true,
+          },
         ],
       }),
       true
-    );
-
-    await queryRunner.createIndex(
-      TableDB.USER,
-      new TableIndex({
-        name: 'username_idx',
-        columnNames: ['username'],
-      })
     );
 
     await queryRunner.createForeignKey(
@@ -71,6 +63,14 @@ export class UserMigration1703175817991 implements MigrationInterface {
         referencedColumnNames: ['id'],
         referencedTableName: TableDB.FILE,
         onDelete: 'CASCADE',
+      })
+    );
+
+    await queryRunner.createIndex(
+      TableDB.USER,
+      new TableIndex({
+        name: 'username_idx',
+        columnNames: ['username'],
       })
     );
   }

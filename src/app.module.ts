@@ -2,6 +2,7 @@ import { AuthModule } from '@/auth/auth.module';
 import configuration from '@/configs/configuration';
 import { DatabaseModule } from '@/database/sql/database.module';
 import { FileModule } from '@/file/file.module';
+import { MissionModule } from '@/mission/mission.module';
 import { configValidationSchema } from '@/schemas/config.schema';
 import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
@@ -22,6 +23,7 @@ import { AppController } from './app.controller';
     AuthModule,
     UserModule,
     FileModule,
+    MissionModule,
   ],
   controllers: [AppController],
 })

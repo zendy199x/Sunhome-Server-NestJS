@@ -1,19 +1,10 @@
 import { AuthService } from '@/auth/auth.service';
+import { AuthCredentialsDto } from '@/auth/dto/auth-credentials.dto';
 import { CreateUserDto } from '@/auth/dto/create-user.dto';
 import { ResetPasswordDto } from '@/auth/dto/reset-password.dto';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { PublicFileValidatorInterceptor } from '@/interceptors/public-file-validator.interceptor';
-import {
-  Body,
-  Controller,
-  Patch,
-  Post,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
 @Controller('auth')
 export class AuthController {

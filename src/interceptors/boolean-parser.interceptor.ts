@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators';
 @Injectable()
 export class BooleanParserInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const booleanFields = ['isVerified', 'isCustomize'];
+    const booleanFields = [];
     const request = context.switchToHttp().getRequest();
     booleanFields.forEach((fieldName) => {
       if (fieldName === 'isCustomize') {
@@ -25,7 +25,7 @@ export class BooleanParserInterceptor implements NestInterceptor {
       }
     });
     return next.handle().pipe(
-      tap((data) => {
+      tap((_data) => {
         // Handle response data if needed
       })
     );

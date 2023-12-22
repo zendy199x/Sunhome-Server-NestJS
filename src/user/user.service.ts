@@ -1,6 +1,6 @@
-import { FilterUserListDto } from './dto/filter-user-list.dto';
 import { FileService } from '@/file/file.service';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
+import { FilterUserListDto } from '@/user/dto/filter-user-list.dto';
 import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { User } from '@/user/entities/user.entity';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';

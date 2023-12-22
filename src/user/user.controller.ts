@@ -1,8 +1,10 @@
-import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/decorators/get-user.decorator';
 import { PublicFileValidatorInterceptor } from '@/interceptors/public-file-validator.interceptor';
+import { FilterUserListDto } from '@/user/dto/filter-user-list.dto';
+import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { User } from '@/user/entities/user.entity';
+import { UserService } from '@/user/user.service';
 import {
   Body,
   Controller,
@@ -19,8 +21,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserService } from './user.service';
-import { FilterUserListDto } from './dto/filter-user-list.dto';
 
 @Controller('user')
 export class UserController {

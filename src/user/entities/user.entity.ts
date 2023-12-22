@@ -2,8 +2,18 @@ import { BaseEntity } from '@/commons/entities/base.entity';
 import { TableDB } from '@/commons/enums/table-db.enum';
 import { UserRole } from '@/commons/enums/user-role.enum';
 import { File } from '@/file/entities/file.entity';
+import { Mission } from '@/mission/entities/mission.entity';
 import { Exclude } from 'class-transformer';
-import { Column, DeleteDateColumn, Entity, Index, JoinColumn, OneToOne } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 @Entity(TableDB.USER)
 export class User extends BaseEntity {
@@ -34,8 +44,15 @@ export class User extends BaseEntity {
   @OneToOne(() => File, (file) => file.avatar, {
     eager: true,
     nullable: true,
-    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'avatar_id' })
   avatar: File;
+
+  @OneToMany(() => Mission, (mission) => mission.created_by, {
+    eager: true,
+  })
+  created_missions: Mission[];
+
+  @ManyToMany(() => Mission, (mission) => mission.participants)
+  missions: Mission[];
 }
