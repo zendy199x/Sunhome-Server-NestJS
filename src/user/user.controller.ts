@@ -61,10 +61,20 @@ export class UserController {
     return this.userService.getDetailUserByUserId(userId);
   }
 
+  @Get('/all')
+  @UseGuards(JwtAuthGuard)
+  getAllUser(@Query() query: FilterUserListDto) {
+    return this.userService.getAllUser(query);
+  }
+
   @Get('/list')
   @UseGuards(JwtAuthGuard)
-  getUserList(@Query() query: FilterUserListDto) {
-    return this.userService.getUserList(query);
+  getUserList(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit,
+    @Query() query: FilterUserListDto
+  ) {
+    return this.userService.getUserList(page, limit, query);
   }
 
   @Get('/:userId')

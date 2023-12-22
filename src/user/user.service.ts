@@ -6,8 +6,8 @@ import { User } from '@/user/entities/user.entity';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -56,7 +56,6 @@ export class UserService {
   async addAvatar(userId: string, file: Express.Multer.File) {
     const user = await this.findUserById(userId);
 
-    console.log(`user>>>`, user);
     const avatarId = user.avatar_id;
 
     if (avatarId) {
@@ -89,7 +88,7 @@ export class UserService {
     return this.getDetailUserByUserId(userId);
   }
 
-  async getUserList(query: FilterUserListDto) {
+  async getAllUser(query: FilterUserListDto) {
     const { username, role, orderBy } = query;
 
     const qb = await this.userRepository
@@ -111,6 +110,30 @@ export class UserService {
     }
 
     return qb.getMany();
+  }
+
+  async getUserList(page: number, limit: number, query: FilterUserListDto) {
+    const { username, role, orderBy } = query;
+
+    const qb = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar');
+
+    if (username) {
+      qb.andWhere('(LOWER(user.username) LIKE LOWER(:username))', {
+        username: `%${username}%`,
+      });
+    }
+
+    if (role) {
+      qb.andWhere('user.role IN (:...role)', { role });
+    }
+
+    if (orderBy) {
+      qb.orderBy('user.createdAt', orderBy);
+    }
+
+    return paginate<User>(qb, { page, limit });
   }
 
   async updateUser(user: User, updateUserDto: UpdateUserDto) {

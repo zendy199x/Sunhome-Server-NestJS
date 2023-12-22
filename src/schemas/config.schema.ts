@@ -1,4 +1,4 @@
-import * as Joi from '@hapi/joi';
+import * as Joi from 'joi';
 
 let environment = 'development';
 if (process.env.NODE_ENV) {
