@@ -1,3 +1,4 @@
+import { FilterUserListDto } from './dto/filter-user-list.dto';
 import { FileService } from '@/file/file.service';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
 import { UpdateUserDto } from '@/user/dto/update-user.dto';
@@ -6,6 +7,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
@@ -85,6 +87,30 @@ export class UserService {
     }
 
     return this.getDetailUserByUserId(userId);
+  }
+
+  async getUserList(query: FilterUserListDto) {
+    const { username, role, orderBy } = query;
+
+    const qb = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.avatar', 'avatar');
+
+    if (username) {
+      qb.andWhere('(LOWER(user.username) LIKE LOWER(:username))', {
+        username: `%${username}%`,
+      });
+    }
+
+    if (role) {
+      qb.andWhere('user.role IN (:...role)', { role });
+    }
+
+    if (orderBy) {
+      qb.orderBy('user.createdAt', orderBy);
+    }
+
+    return qb.getMany();
   }
 
   async updateUser(user: User, updateUserDto: UpdateUserDto) {

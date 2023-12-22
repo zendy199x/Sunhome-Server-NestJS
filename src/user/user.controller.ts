@@ -6,17 +6,21 @@ import { User } from '@/user/entities/user.entity';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
+import { FilterUserListDto } from './dto/filter-user-list.dto';
 
 @Controller('user')
 export class UserController {
@@ -52,9 +56,15 @@ export class UserController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  getUser(@GetUser() user: User) {
+  getUserDetail(@GetUser() user: User) {
     const { id: userId } = user;
     return this.userService.getDetailUserByUserId(userId);
+  }
+
+  @Get('/list')
+  @UseGuards(JwtAuthGuard)
+  getUserList(@Query() query: FilterUserListDto) {
+    return this.userService.getUserList(query);
   }
 
   @Get('/:userId')
