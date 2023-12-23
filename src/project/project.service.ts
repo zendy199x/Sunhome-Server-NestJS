@@ -1,13 +1,13 @@
-import { FindProjectDto } from '@/project/dto/find-project.dto';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
-import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from '@/project/dto/create-project.dto';
+import { FindProjectDto } from '@/project/dto/find-project.dto';
+import { UpdateProjectDto } from '@/project/dto/update-project.dto';
 import { Project } from '@/project/entities/project.entity';
 import { User } from '@/user/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
@@ -25,7 +25,7 @@ export class ProjectService {
     return project;
   }
 
-  async findProjectDetailById(projectId: string) {
+  async findProjectDetailById(projectId: string): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.missions', 'missions')
@@ -46,10 +46,10 @@ export class ProjectService {
     return project;
   }
 
-  async getProjectList(page: number, limit: number, query: FindProjectDto) {
+  async getProjectList(page: number, limit: number, query: FindProjectDto): Promise<any> {
     const { name, status, created_by_ids, sort_by, order_by } = query;
 
-    let qb = await this.projectRepository
+    const qb = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.missions', 'missions')
       .leftJoinAndSelect('project.created_by', 'project_created_by')
@@ -60,9 +60,7 @@ export class ProjectService {
       .leftJoinAndSelect('participants.avatar', 'participant_avatar');
 
     if (name) {
-      qb.where('(LOWER(project.name) LIKE LOWER(:name))', {
-        name: `%${name}%`,
-      });
+      qb.andWhere('LOWER(project.name) LIKE LOWER(:name)', { name: `%${name}%` });
     }
 
     if (status) {
@@ -78,7 +76,7 @@ export class ProjectService {
     return paginate<Project>(qb, { page, limit });
   }
 
-  async createProject(user: User, createProjectDto: CreateProjectDto) {
+  async createProject(user: User, createProjectDto: CreateProjectDto): Promise<Project> {
     const savedProject = await this.projectRepository.save({
       ...createProjectDto,
       created_by: user,
@@ -87,24 +85,15 @@ export class ProjectService {
     return savedProject;
   }
 
-  async updateProjectById(projectId: string, updateProjectDto: UpdateProjectDto) {
-    let { ...updateProjectParams } = updateProjectDto;
-
+  async updateProjectById(projectId: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
     const project = await this.findProjectById(projectId);
-
-    await this.projectRepository.save({
-      ...project,
-      updateProjectParams,
-    });
-
+    await this.projectRepository.save({ ...project, ...updateProjectDto });
     return this.findProjectDetailById(projectId);
   }
 
-  async deleteProjectById(projectId: string) {
+  async deleteProjectById(projectId: string): Promise<string> {
     const project = await this.findProjectById(projectId);
-
     await this.projectRepository.remove(project);
-
     return 'Deleted project successfully';
   }
 }

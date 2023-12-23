@@ -1,10 +1,11 @@
-import { AddTotalCostMissionDto } from '@/mission/dto/add-total-cost-mission.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/decorators/get-user.decorator';
+import { AddTotalCostMissionDto } from '@/mission/dto/add-total-cost-mission.dto';
 import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
+import { UpdateMissionDto } from '@/mission/dto/update-mission.dto';
 import { MissionService } from '@/mission/mission.service';
 import { User } from '@/user/entities/user.entity';
-import { Body, Controller, Post, UseGuards, Delete, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
 
 @Controller('mission')
 export class MissionController {
@@ -16,10 +17,22 @@ export class MissionController {
     return this.missionService.createMission(user, createMissionDto);
   }
 
-  @Post('/add-total-cost')
+  @Patch('/:missionId')
   @UseGuards(JwtAuthGuard)
-  async addTotalCost(@Body() addTotalCostMissionDto: AddTotalCostMissionDto) {
-    return this.missionService.addTotalCostMission(addTotalCostMissionDto);
+  async updateMissionById(
+    @Param('missionId') missionId: string,
+    @Body() updateMissionDto: UpdateMissionDto
+  ) {
+    return this.missionService.updateMissionById(missionId, updateMissionDto);
+  }
+
+  @Post('/add-total-cost/:missionId')
+  @UseGuards(JwtAuthGuard)
+  async addTotalCost(
+    @Param('missionId') missionId: string,
+    @Body() addTotalCostMissionDto: AddTotalCostMissionDto
+  ) {
+    return this.missionService.addTotalCostMission(missionId, addTotalCostMissionDto);
   }
 
   @Delete('/:missionId')

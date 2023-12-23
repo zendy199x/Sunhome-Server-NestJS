@@ -11,7 +11,6 @@ import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  jwtService: any;
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -59,52 +58,42 @@ export class UserService {
     return user;
   }
 
-  async addAvatar(userId: string, file: Express.Multer.File) {
+  async addAvatar(userId: string, file: Express.Multer.File): Promise<User> {
     const user = await this.findUserById(userId);
-
     const avatarId = user.avatar_id;
 
     if (avatarId) {
-      await this.userRepository.update(userId, {
-        avatar: null,
-      });
+      await this.userRepository.update(userId, { avatar: null });
       await this.fileService.deletePublicFile(avatarId);
     }
 
     const avatar = await this.fileService.uploadPublicFile(file);
-    await this.userRepository.save({
-      ...user,
-      avatar,
-    });
+    await this.userRepository.save({ ...user, avatar });
 
     return this.getDetailUserByUserId(userId);
   }
 
-  async deleteAvatar(userId: string) {
+  async deleteAvatar(userId: string): Promise<User> {
     const user = await this.findUserById(userId);
     const avatarId = user.avatar_id;
 
     if (avatarId) {
-      await this.userRepository.update(userId, {
-        avatar: null,
-      });
+      await this.userRepository.update(userId, { avatar: null });
       await this.fileService.deletePublicFile(avatarId);
     }
 
     return this.getDetailUserByUserId(userId);
   }
 
-  async getAllUser(query: FilterUserListDto) {
+  async getAllUser(query: FilterUserListDto): Promise<User[]> {
     const { username, role, orderBy } = query;
 
-    const qb = await this.userRepository
+    const qb = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar');
 
     if (username) {
-      qb.andWhere('(LOWER(user.username) LIKE LOWER(:username))', {
-        username: `%${username}%`,
-      });
+      qb.andWhere('LOWER(user.username) LIKE LOWER(:username)', { username: `%${username}%` });
     }
 
     if (role) {
@@ -118,17 +107,15 @@ export class UserService {
     return qb.getMany();
   }
 
-  async getUserList(page: number, limit: number, query: FilterUserListDto) {
+  async getUserList(page: number, limit: number, query: FilterUserListDto): Promise<any> {
     const { username, role, orderBy } = query;
 
-    const qb = await this.userRepository
+    const qb = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar');
 
     if (username) {
-      qb.andWhere('(LOWER(user.username) LIKE LOWER(:username))', {
-        username: `%${username}%`,
-      });
+      qb.andWhere('LOWER(user.username) LIKE LOWER(:username)', { username: `%${username}%` });
     }
 
     if (role) {
@@ -142,7 +129,7 @@ export class UserService {
     return paginate<User>(qb, { page, limit });
   }
 
-  async updateUser(user: User, updateUserDto: UpdateUserDto) {
+  async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {
     const { id: userId, username: userUsername } = user;
     const { username, password, role } = updateUserDto;
     const updateUserParams: Record<string, any> = {};

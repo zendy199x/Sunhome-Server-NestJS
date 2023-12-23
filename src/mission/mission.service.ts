@@ -1,13 +1,14 @@
-import { AddTotalCostMissionDto } from './dto/add-total-cost-mission.dto';
-import { UserService } from '@/user/user.service';
+import { ValidatorConstants } from '@/helpers/constants/validator.constant';
+import { AddTotalCostMissionDto } from '@/mission/dto/add-total-cost-mission.dto';
 import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
+import { UpdateMissionDto } from '@/mission/dto/update-mission.dto';
 import { Mission } from '@/mission/entities/mission.entity';
+import { ProjectService } from '@/project/project.service';
 import { User } from '@/user/entities/user.entity';
+import { UserService } from '@/user/user.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProjectService } from '@/project/project.service';
-import { ValidatorConstants } from '@/helpers/constants/validator.constant';
 
 @Injectable()
 export class MissionService {
@@ -28,23 +29,14 @@ export class MissionService {
     return mission;
   }
 
-  async findMissionDetailById(missionId: string) {
-    const mission = await this.missionRepository
-      .createQueryBuilder('mission')
-      // .leftJoinAndSelect('mission.created_by', 'mission_created_by')
-      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_create_by_avatar')
-      .leftJoinAndSelect('mission.participants', 'participants')
-      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
-      .where('mission.id = :missionId', { missionId })
-      .getOne();
-
-    if (!mission) {
-      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Mission'));
-    }
-    return mission;
+  async findMissionDetailById(missionId: string): Promise<Mission> {
+    return this.missionRepository.findOne({
+      where: { id: missionId },
+      relations: ['participants', 'participants.avatar'],
+    });
   }
 
-  async createMission(user: User, createMissionDto: CreateMissionDto) {
+  async createMission(user: User, createMissionDto: CreateMissionDto): Promise<Mission> {
     const { project_id, participant_ids, ...createMissionParams } = createMissionDto;
 
     await this.projectService.findProjectById(project_id);
@@ -53,17 +45,33 @@ export class MissionService {
       ? await this.userService.findUserByIds(participant_ids)
       : [];
 
-    const savedMission = await this.missionRepository.save({
+    return this.missionRepository.save({
       ...createMissionParams,
       project_id,
       created_by: user,
       participants,
     });
-
-    return savedMission;
   }
 
-  async deleteMissionById(missionId: string) {
+  async updateMissionById(missionId: string, updateMissionDto: UpdateMissionDto): Promise<Mission> {
+    const { participant_ids, ...updateMissionParams } = updateMissionDto;
+
+    const participants = participant_ids
+      ? await this.userService.findUserByIds(participant_ids)
+      : [];
+
+    await this.missionRepository.update(
+      { id: missionId },
+      {
+        ...updateMissionParams,
+        participants,
+      }
+    );
+
+    return this.findMissionDetailById(missionId);
+  }
+
+  async deleteMissionById(missionId: string): Promise<string> {
     const mission = await this.findMissionById(missionId);
 
     await this.missionRepository.remove(mission);
@@ -71,18 +79,14 @@ export class MissionService {
     return 'Deleted mission successfully';
   }
 
-  async addTotalCostMission(addTotalCostMissionDto: AddTotalCostMissionDto) {
-    const { mission_id, new_cost } = addTotalCostMissionDto;
+  async addTotalCostMission(
+    missionId: string,
+    addTotalCostMissionDto: AddTotalCostMissionDto
+  ): Promise<Mission> {
+    const { new_cost } = addTotalCostMissionDto;
 
-    const mission = await this.findMissionById(mission_id);
+    await this.missionRepository.increment({ id: missionId }, 'total_cost', new_cost);
 
-    const totalCost = mission.total_cost + new_cost;
-
-    await this.missionRepository.save({
-      ...mission,
-      total_cost: totalCost,
-    });
-
-    return this.findMissionDetailById(mission_id);
+    return this.findMissionDetailById(missionId);
   }
 }
