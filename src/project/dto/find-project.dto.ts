@@ -13,6 +13,11 @@ export class FindProjectDto {
   @IsOptional()
   @IsArray()
   @IsUUID(undefined, { each: true })
+  participant_ids: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID(undefined, { each: true })
   created_by_ids: Array<string>;
 
   @IsString({ message: 'Invalid sort_by value. Must be either "name" or "created_at"' })

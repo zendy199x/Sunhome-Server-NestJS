@@ -47,7 +47,7 @@ export class ProjectService {
   }
 
   async getProjectList(page: number, limit: number, query: FindProjectDto): Promise<any> {
-    const { name, status, created_by_ids, sort_by, order_by } = query;
+    const { name, status, participant_ids, created_by_ids, sort_by, order_by } = query;
 
     const qb = this.projectRepository
       .createQueryBuilder('project')
@@ -65,6 +65,10 @@ export class ProjectService {
 
     if (status) {
       qb.andWhere('project.status IN (:...status)', { status });
+    }
+
+    if (participant_ids) {
+      qb.andWhere('participants.id IN (:...participant_ids)', { participant_ids });
     }
 
     if (created_by_ids) {

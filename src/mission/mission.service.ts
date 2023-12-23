@@ -15,6 +15,8 @@ export class MissionService {
   constructor(
     @InjectRepository(Mission)
     private missionRepository: Repository<Mission>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
 
     private userService: UserService,
     private projectService: ProjectService
@@ -30,10 +32,15 @@ export class MissionService {
   }
 
   async findMissionDetailById(missionId: string): Promise<Mission> {
-    const mission = this.missionRepository.findOne({
-      where: { id: missionId },
-      relations: ['participants', 'participants.avatar'],
-    });
+    const mission = await this.missionRepository
+      .createQueryBuilder('mission')
+      // .leftJoinAndSelect('mission.created_by', 'mission_created_by')
+      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_create_by_avatar')
+      .leftJoinAndSelect('mission.participants', 'participants')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
+      .where('mission.id = :missionId', { missionId })
+      .orderBy('participants.created_at', 'ASC')
+      .getOne();
 
     if (!mission) {
       throw new NotFoundException(ValidatorConstants.NOT_FOUND('Mission'));
@@ -41,9 +48,36 @@ export class MissionService {
     return mission;
   }
 
-  async getMissionById(missionId: string) {
+  async getMissionByProjectId(projectId: string) {
+    const missions = await this.missionRepository
+      .createQueryBuilder('mission')
+      .leftJoinAndSelect('mission.participants', 'participants')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
+      .where('mission.project_id = :projectId', { projectId })
+      .orderBy('participants.created_at', 'ASC')
+      .getMany();
+
+    return missions;
+  }
+
+  async getMissionDetailById(missionId: string) {
     return this.findMissionDetailById(missionId);
   }
+
+  async getAllParticipantById(missionId: string) {
+    const mission = await this.findMissionDetailById(missionId);
+
+    return mission.participants;
+  }
+
+  // async getParticipantByUserId(missionId: string, userId: string) {
+  //   await this.userService.findUserById(userId);
+  //   const mission = await this.findMissionDetailById(missionId);
+
+  //   const user = mission.participants.find((participant) => participant.id === userId);
+
+  //   return user;
+  // }
 
   async createMission(user: User, createMissionDto: CreateMissionDto): Promise<Mission> {
     const { project_id, participant_ids, ...createMissionParams } = createMissionDto;
@@ -65,19 +99,43 @@ export class MissionService {
   async updateMissionById(missionId: string, updateMissionDto: UpdateMissionDto): Promise<Mission> {
     const { participant_ids, ...updateMissionParams } = updateMissionDto;
 
-    const participants = participant_ids
-      ? await this.userService.findUserByIds(participant_ids)
+    const mission = await this.findMissionDetailById(missionId);
+
+    const existingParticipantIds = mission.participants.map((participant) => participant.id);
+
+    const participantsToAdd = participant_ids
+      ? await this.findParticipantsByIds(
+          participant_ids.filter((id) => !existingParticipantIds.includes(id))
+        )
       : [];
 
-    await this.missionRepository.update(
-      { id: missionId },
-      {
-        ...updateMissionParams,
-        participants,
-      }
+    const participantsToDelete = mission.participants.filter(
+      (participant) => participant_ids && !participant_ids.includes(participant.id)
     );
 
+    await this.missionRepository.save({
+      ...mission,
+      ...updateMissionParams,
+      participants: [...mission.participants, ...participantsToAdd],
+    });
+
+    await this.removeParticipantsFromMission(mission, participantsToDelete);
+
     return this.findMissionDetailById(missionId);
+  }
+
+  async findParticipantsByIds(userIds: string[]): Promise<User[]> {
+    return this.userService.findUserByIds(userIds);
+  }
+
+  async removeParticipantsFromMission(mission: Mission, participants: User[]): Promise<void> {
+    if (participants.length > 0) {
+      await this.missionRepository
+        .createQueryBuilder()
+        .relation(Mission, 'participants')
+        .of(mission)
+        .remove(participants);
+    }
   }
 
   async deleteMissionById(missionId: string): Promise<string> {

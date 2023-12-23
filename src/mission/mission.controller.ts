@@ -11,11 +11,32 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@n
 export class MissionController {
   constructor(private readonly missionService: MissionService) {}
 
-  @Get('/:missionId')
+  @Get('/all/:projectId')
   @UseGuards(JwtAuthGuard)
-  async getMissionById(@Param('missionId') missionId: string) {
-    return this.missionService.getMissionById(missionId);
+  async getMissionByProjectId(@Param('projectId') projectId: string) {
+    return this.missionService.getMissionByProjectId(projectId);
   }
+
+  @Get('/detail/:missionId')
+  @UseGuards(JwtAuthGuard)
+  async getMissionDetailById(@Param('missionId') missionId: string) {
+    return this.missionService.getMissionDetailById(missionId);
+  }
+
+  @Get('/participant/:missionId')
+  @UseGuards(JwtAuthGuard)
+  async getAllParticipantById(@Param('missionId') missionId: string) {
+    return this.missionService.getAllParticipantById(missionId);
+  }
+
+  // @Get('/participant/:missionId/:userId')
+  // @UseGuards(JwtAuthGuard)
+  // async getParticipantByUserId(
+  //   @Param('missionId') missionId: string,
+  //   @Param('userId') userId: string
+  // ) {
+  //   return this.missionService.getParticipantByUserId(missionId, userId);
+  // }
 
   @Post()
   @UseGuards(JwtAuthGuard)
