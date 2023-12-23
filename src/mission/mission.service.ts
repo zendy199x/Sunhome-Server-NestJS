@@ -1,3 +1,4 @@
+import { AddTotalCostMissionDto } from './dto/add-total-cost-mission.dto';
 import { UserService } from '@/user/user.service';
 import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
 import { Mission } from '@/mission/entities/mission.entity';
@@ -20,6 +21,22 @@ export class MissionService {
 
   async findMissionById(missionId: string) {
     const mission = await this.missionRepository.findOneBy({ id: missionId });
+
+    if (!mission) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Mission'));
+    }
+    return mission;
+  }
+
+  async findMissionDetailById(missionId: string) {
+    const mission = await this.missionRepository
+      .createQueryBuilder('mission')
+      // .leftJoinAndSelect('mission.created_by', 'mission_created_by')
+      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_create_by_avatar')
+      .leftJoinAndSelect('mission.participants', 'participants')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
+      .where('mission.id = :missionId', { missionId })
+      .getOne();
 
     if (!mission) {
       throw new NotFoundException(ValidatorConstants.NOT_FOUND('Mission'));
@@ -52,5 +69,20 @@ export class MissionService {
     await this.missionRepository.remove(mission);
 
     return 'Deleted mission successfully';
+  }
+
+  async addTotalCostMission(addTotalCostMissionDto: AddTotalCostMissionDto) {
+    const { mission_id, new_cost } = addTotalCostMissionDto;
+
+    const mission = await this.findMissionById(mission_id);
+
+    const totalCost = mission.total_cost + new_cost;
+
+    await this.missionRepository.save({
+      ...mission,
+      total_cost: totalCost,
+    });
+
+    return this.findMissionDetailById(mission_id);
   }
 }

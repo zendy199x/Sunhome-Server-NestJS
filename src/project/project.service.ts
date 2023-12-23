@@ -25,6 +25,27 @@ export class ProjectService {
     return project;
   }
 
+  async findProjectDetailById(projectId: string) {
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.missions', 'missions')
+      // .leftJoinAndSelect('project.created_by', 'project_created_by')
+      // .leftJoinAndSelect('project_created_by.avatar', 'project_created_by_avatar')
+      .leftJoinAndSelect('missions.participants', 'participants')
+      // .leftJoinAndSelect('missions.created_by', 'mission_created_by')
+      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
+      .orderBy('missions.created_at', 'ASC')
+      .where('project.id = :projectId', { projectId })
+      .getOne();
+
+    if (!project) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Project'));
+    }
+
+    return project;
+  }
+
   async getProjectList(page: number, limit: number, query: FindProjectDto) {
     const { name, status, created_by_ids, sort_by, order_by } = query;
 
@@ -55,27 +76,6 @@ export class ProjectService {
     qb.orderBy(`project.${sort_by}`, order_by, 'NULLS LAST').orderBy('missions.created_at', 'ASC');
 
     return paginate<Project>(qb, { page, limit });
-  }
-
-  async findProjectDetailById(projectId: string) {
-    const project = await this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.missions', 'missions')
-      // .leftJoinAndSelect('project.created_by', 'project_created_by')
-      // .leftJoinAndSelect('project_created_by.avatar', 'project_created_by_avatar')
-      .leftJoinAndSelect('missions.participants', 'participants')
-      // .leftJoinAndSelect('missions.created_by', 'mission_created_by')
-      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
-      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
-      .orderBy('missions.created_at', 'ASC')
-      .where('project.id = :projectId', { projectId })
-      .getOne();
-
-    if (!project) {
-      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Project'));
-    }
-
-    return project;
   }
 
   async createProject(user: User, createProjectDto: CreateProjectDto) {
