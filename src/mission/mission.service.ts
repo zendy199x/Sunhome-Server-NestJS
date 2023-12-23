@@ -5,6 +5,7 @@ import { User } from '@/user/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ProjectService } from '@/project/project.service';
 
 @Injectable()
 export class MissionService {
@@ -12,11 +13,14 @@ export class MissionService {
     @InjectRepository(Mission)
     private missionRepository: Repository<Mission>,
 
-    private userService: UserService
+    private userService: UserService,
+    private projectService: ProjectService
   ) {}
 
   async createMission(user: User, createMissionDto: CreateMissionDto) {
-    const { participantIds, ...createMissionParams } = createMissionDto;
+    const { project_id, participantIds, ...createMissionParams } = createMissionDto;
+
+    await this.projectService.findProjectById(project_id);
 
     const participants = participantIds ? await this.userService.findUserByIds(participantIds) : [];
 

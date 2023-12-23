@@ -3,11 +3,17 @@ import { GetUser } from '@/decorators/get-user.decorator';
 import { CreateProjectDto } from '@/project/dto/create-project.dto';
 import { ProjectService } from '@/project/project.service';
 import { User } from '@/user/entities/user.entity';
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
+
+  @Get('/:projectId')
+  @UseGuards(JwtAuthGuard)
+  async getProjectById(@Param('projectId') projectId: string) {
+    return this.projectService.findProjectDetailById(projectId);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -21,12 +27,12 @@ export class ProjectController {
     @Param('projectId') projectId: string,
     @Body() createProjectDto: CreateProjectDto
   ) {
-    return this.projectService.updateProject(projectId, createProjectDto);
+    return this.projectService.updateProjectById(projectId, createProjectDto);
   }
 
-  @Get('/:projectId')
+  @Delete('/:projectId')
   @UseGuards(JwtAuthGuard)
-  async getProjectById(@Param('projectId') projectId: string) {
-    return this.projectService.findProjectDetailById(projectId);
+  async deleteProjectById(@Param('projectId') projectId: string) {
+    return this.projectService.deleteProjectById(projectId);
   }
 }

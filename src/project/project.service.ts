@@ -48,7 +48,7 @@ export class ProjectService {
     return savedProject;
   }
 
-  async updateProject(projectId: string, updateProjectDto: UpdateProjectDto) {
+  async updateProjectById(projectId: string, updateProjectDto: UpdateProjectDto) {
     let { ...updateProjectParams } = updateProjectDto;
 
     const project = await this.findProjectById(projectId);
@@ -59,5 +59,13 @@ export class ProjectService {
     });
 
     return this.findProjectDetailById(projectId);
+  }
+
+  async deleteProjectById(projectId: string) {
+    const project = await this.findProjectById(projectId);
+
+    await this.projectRepository.remove(project);
+
+    return 'Deleted project successfully';
   }
 }
