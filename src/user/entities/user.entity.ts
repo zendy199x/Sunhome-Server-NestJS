@@ -3,6 +3,7 @@ import { TableDB } from '@/commons/enums/table-db.enum';
 import { UserRole } from '@/commons/enums/user-role.enum';
 import { File } from '@/file/entities/file.entity';
 import { Mission } from '@/mission/entities/mission.entity';
+import { Project } from '@/project/entities/project.entity';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -48,11 +49,12 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'avatar_id' })
   avatar: File;
 
-  @OneToMany(() => Mission, (mission) => mission.created_by, {
-    eager: true,
-  })
+  @OneToMany(() => Project, (project) => project.created_by)
+  created_projects: Project[];
+
+  @OneToMany(() => Mission, (mission) => mission.created_by)
   created_missions: Mission[];
 
   @ManyToMany(() => Mission, (mission) => mission.participants)
-  missions: Mission[];
+  participated_missions: Mission[];
 }

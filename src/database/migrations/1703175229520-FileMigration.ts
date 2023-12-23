@@ -45,7 +45,8 @@ export class FileMigration1703175229520 implements MigrationInterface {
             default: 'CURRENT_TIMESTAMP',
           },
         ],
-      })
+      }),
+      true
     );
   }
 

@@ -1,12 +1,12 @@
+import { ProjectStatus } from '@/commons/enums/project-status.enum';
 import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from 'typeorm';
-import { MissionStatus } from '../../commons/enums/mission-status.enum';
 import { TableDB } from '../../commons/enums/table-db.enum';
 
-export class MissionMigration1703262896257 implements MigrationInterface {
+export class ProjectMigration1703301706315 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: TableDB.MISSION,
+        name: TableDB.PROJECT,
         columns: [
           {
             name: 'id',
@@ -16,27 +16,15 @@ export class MissionMigration1703262896257 implements MigrationInterface {
             default: `uuid_generate_v4()`,
           },
           {
-            name: 'title',
+            name: 'name',
             type: 'varchar',
-          },
-          {
-            name: 'describe',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'total_cost',
-            type: 'real',
-          },
-          {
-            name: 'usage_cost',
-            type: 'real',
           },
           {
             name: 'status',
             type: 'enum',
-            enum: Object.values(MissionStatus),
-            default: `'${MissionStatus.TODO}'`,
+            enum: Object.values(ProjectStatus),
+            enumName: 'project_status_enum',
+            default: `'${ProjectStatus.TO_DO}'`,
           },
           {
             name: 'created_by_id',
@@ -48,33 +36,32 @@ export class MissionMigration1703262896257 implements MigrationInterface {
     );
 
     await queryRunner.createForeignKey(
-      TableDB.MISSION,
+      TableDB.PROJECT,
       new TableForeignKey({
         columnNames: ['created_by_id'],
         referencedColumnNames: ['id'],
         referencedTableName: TableDB.USER,
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       })
     );
 
     await queryRunner.createIndex(
-      TableDB.MISSION,
+      TableDB.PROJECT,
       new TableIndex({
-        name: 'created_by_id_idx',
+        name: 'project_created_by_id_idx',
         columnNames: ['created_by_id'],
       })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const table = await queryRunner.getTable(TableDB.MISSION);
-
-    const createByForeignKey = table.foreignKeys.find(
+    const projectTable = await queryRunner.getTable(TableDB.PROJECT);
+    const createByForeignKey = projectTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('created_by_id') !== -1
     );
-
-    await queryRunner.dropForeignKeys(TableDB.MISSION, [createByForeignKey]);
-    await queryRunner.dropIndex(TableDB.MISSION, 'created_by_id_idx');
-    await queryRunner.dropTable(TableDB.MISSION);
+    await queryRunner.dropForeignKeys(TableDB.PROJECT, [createByForeignKey]);
+    await queryRunner.dropIndex(TableDB.PROJECT, 'project_created_by_id_idx');
+    await queryRunner.dropTable(TableDB.PROJECT);
   }
 }

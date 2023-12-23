@@ -7,7 +7,7 @@ export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     return next.handle().pipe(
       map((data) => ({
-        status_code: context?.switchToHttp()?.getResponse()?.statusCode,
+        statusCode: context?.switchToHttp()?.getResponse()?.statusCode,
         message: data?.message ?? 'success',
         data: instanceToPlain(data),
       }))

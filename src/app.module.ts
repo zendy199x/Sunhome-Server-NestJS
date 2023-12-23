@@ -9,6 +9,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AppController } from './app.controller';
     UserModule,
     FileModule,
     MissionModule,
+    ProjectModule,
   ],
   controllers: [AppController],
 })

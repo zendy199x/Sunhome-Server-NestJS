@@ -63,6 +63,7 @@ export class UserMigration1703175817991 implements MigrationInterface {
         referencedColumnNames: ['id'],
         referencedTableName: TableDB.FILE,
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       })
     );
 
@@ -71,13 +72,14 @@ export class UserMigration1703175817991 implements MigrationInterface {
       new TableIndex({
         name: 'username_idx',
         columnNames: ['username'],
+        isUnique: true,
       })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const table = await queryRunner.getTable(TableDB.USER);
-    const avatarForeignKey = table.foreignKeys.find(
+    const userTable = await queryRunner.getTable(TableDB.USER);
+    const avatarForeignKey = userTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('avatar_id') !== -1
     );
     await queryRunner.dropForeignKeys(TableDB.USER, [avatarForeignKey]);
