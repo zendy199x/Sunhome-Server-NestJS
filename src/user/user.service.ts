@@ -138,40 +138,25 @@ export class UserService {
 
   async updateUser(user: User, updateUserDto: UpdateUserDto) {
     const { id: userId, username: userUsername } = user;
-
     const { username, password, role } = updateUserDto;
-    let { ...paramsToUpdate } = updateUserDto;
+    const paramsToUpdate: Record<string, any> = {};
 
     if (username && username !== userUsername) {
-      const user = await this.findUserByUsername(username);
-
-      if (user) {
-        throw new ConflictException('Email already exists');
+      const existingUser = await this.findUserByUsername(username);
+      if (existingUser) {
+        throw new ConflictException('Username already exists');
       }
-    }
-
-    if (username) {
-      paramsToUpdate = {
-        ...paramsToUpdate,
-        username,
-      };
+      paramsToUpdate.username = username;
     }
 
     if (role) {
-      paramsToUpdate = {
-        ...paramsToUpdate,
-        role,
-      };
+      paramsToUpdate.role = role;
     }
 
     if (password) {
       const salt = await bcrypt.genSalt();
       const hashedNewPassword = await bcrypt.hash(password, salt);
-
-      paramsToUpdate = {
-        ...paramsToUpdate,
-        password: hashedNewPassword,
-      };
+      paramsToUpdate.password = hashedNewPassword;
     }
 
     await this.userRepository.update(userId, paramsToUpdate);
