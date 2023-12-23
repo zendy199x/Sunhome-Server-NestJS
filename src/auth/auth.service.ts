@@ -51,13 +51,11 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const createdUser = await this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
-
     try {
-      const savedUser = await this.userRepository.save(createdUser);
+      const savedUser = await this.userRepository.save({
+        ...createUserDto,
+        password: hashedPassword,
+      });
 
       if (avatar) {
         await this.userService.addAvatar(savedUser.id, avatar);

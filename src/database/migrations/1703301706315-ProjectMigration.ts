@@ -30,6 +30,16 @@ export class ProjectMigration1703301706315 implements MigrationInterface {
             name: 'created_by_id',
             type: 'uuid',
           },
+          {
+            name: 'created_at',
+            type: 'timestamptz',
+            default: 'now()',
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamptz',
+            default: 'now()',
+          },
         ],
       }),
       true

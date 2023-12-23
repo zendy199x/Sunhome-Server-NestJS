@@ -16,7 +16,7 @@ export class MissionMigration1703302073177 implements MigrationInterface {
             default: `uuid_generate_v4()`,
           },
           {
-            name: 'title',
+            name: 'name',
             type: 'varchar',
           },
           {
@@ -46,6 +46,16 @@ export class MissionMigration1703302073177 implements MigrationInterface {
           {
             name: 'project_id',
             type: 'uuid',
+          },
+          {
+            name: 'created_at',
+            type: 'timestamptz',
+            default: 'now()',
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamptz',
+            default: 'now()',
           },
         ],
       }),

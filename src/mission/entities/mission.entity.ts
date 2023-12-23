@@ -8,7 +8,7 @@ import { Column, Entity, JoinColumn, ManyToOne, ManyToMany, JoinTable } from 'ty
 @Entity(TableDB.MISSION)
 export class Mission extends BaseEntity {
   @Column()
-  title: string;
+  name: string;
 
   @Column({ nullable: true })
   describe: string;
