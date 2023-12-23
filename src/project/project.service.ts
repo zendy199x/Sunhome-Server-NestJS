@@ -28,6 +28,7 @@ export class ProjectService {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.created_by', 'created_by')
       .leftJoinAndSelect('project.missions', 'missions')
+      .orderBy('missions.created_at', 'ASC')
       .where('project.id = :projectId', { projectId })
       .getOne();
 
