@@ -13,10 +13,10 @@ export class Mission extends BaseEntity {
   @Column({ nullable: true })
   describe: string;
 
-  @Column({ type: 'real' })
+  @Column({ type: 'real', default: 0 })
   total_cost: number;
 
-  @Column({ type: 'real' })
+  @Column({ type: 'real', default: 0 })
   usage_cost: number;
 
   @Column({

@@ -7,7 +7,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { paginate } from 'nestjs-typeorm-paginate';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -37,6 +37,12 @@ export class UserService {
       throw new NotFoundException(ValidatorConstants.NOT_FOUND('User'));
     }
     return user;
+  }
+
+  async findUserByIds(userIds: string[]) {
+    const users = await this.userRepository.findBy({ id: In(userIds) });
+
+    return users;
   }
 
   async getDetailUserByUserId(userId: string) {
@@ -139,27 +145,27 @@ export class UserService {
   async updateUser(user: User, updateUserDto: UpdateUserDto) {
     const { id: userId, username: userUsername } = user;
     const { username, password, role } = updateUserDto;
-    const paramsToUpdate: Record<string, any> = {};
+    const updateUserParams: Record<string, any> = {};
 
     if (username && username !== userUsername) {
       const existingUser = await this.findUserByUsername(username);
       if (existingUser) {
         throw new ConflictException('Username already exists');
       }
-      paramsToUpdate.username = username;
+      updateUserParams.username = username;
     }
 
     if (role) {
-      paramsToUpdate.role = role;
+      updateUserParams.role = role;
     }
 
     if (password) {
       const salt = await bcrypt.genSalt();
       const hashedNewPassword = await bcrypt.hash(password, salt);
-      paramsToUpdate.password = hashedNewPassword;
+      updateUserParams.password = hashedNewPassword;
     }
 
-    await this.userRepository.update(userId, paramsToUpdate);
+    await this.userRepository.update(userId, updateUserParams);
 
     return this.getDetailUserByUserId(userId);
   }

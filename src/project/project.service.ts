@@ -49,13 +49,13 @@ export class ProjectService {
   }
 
   async updateProject(projectId: string, updateProjectDto: UpdateProjectDto) {
-    let { ...paramsToUpdate } = updateProjectDto;
+    let { ...updateProjectParams } = updateProjectDto;
 
     const project = await this.findProjectById(projectId);
 
     await this.projectRepository.save({
       ...project,
-      paramsToUpdate,
+      updateProjectParams,
     });
 
     return this.findProjectDetailById(projectId);

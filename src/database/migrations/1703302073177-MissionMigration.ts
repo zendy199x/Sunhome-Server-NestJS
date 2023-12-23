@@ -22,15 +22,16 @@ export class MissionMigration1703302073177 implements MigrationInterface {
           {
             name: 'describe',
             type: 'varchar',
-            isNullable: true,
           },
           {
             name: 'total_cost',
             type: 'real',
+            default: 0,
           },
           {
             name: 'usage_cost',
             type: 'real',
+            default: 0,
           },
           {
             name: 'status',
