@@ -26,8 +26,13 @@ export class ProjectService {
   async findProjectDetailById(projectId: string) {
     const project = await this.projectRepository
       .createQueryBuilder('project')
-      .leftJoinAndSelect('project.created_by', 'created_by')
       .leftJoinAndSelect('project.missions', 'missions')
+      .leftJoinAndSelect('project.created_by', 'project_created_by')
+      .leftJoinAndSelect('project_created_by.avatar', 'project_created_by_avatar')
+      .leftJoinAndSelect('missions.participants', 'participants')
+      .leftJoinAndSelect('missions.created_by', 'mission_created_by')
+      .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar')
       .orderBy('missions.created_at', 'ASC')
       .where('project.id = :projectId', { projectId })
       .getOne();
