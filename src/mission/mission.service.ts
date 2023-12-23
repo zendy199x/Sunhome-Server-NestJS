@@ -30,10 +30,19 @@ export class MissionService {
   }
 
   async findMissionDetailById(missionId: string): Promise<Mission> {
-    return this.missionRepository.findOne({
+    const mission = this.missionRepository.findOne({
       where: { id: missionId },
       relations: ['participants', 'participants.avatar'],
     });
+
+    if (!mission) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Mission'));
+    }
+    return mission;
+  }
+
+  async getMissionById(missionId: string) {
+    return this.findMissionDetailById(missionId);
   }
 
   async createMission(user: User, createMissionDto: CreateMissionDto): Promise<Mission> {

@@ -5,11 +5,17 @@ import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
 import { UpdateMissionDto } from '@/mission/dto/update-mission.dto';
 import { MissionService } from '@/mission/mission.service';
 import { User } from '@/user/entities/user.entity';
-import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 
 @Controller('mission')
 export class MissionController {
   constructor(private readonly missionService: MissionService) {}
+
+  @Get('/:missionId')
+  @UseGuards(JwtAuthGuard)
+  async getMissionById(@Param('missionId') missionId: string) {
+    return this.missionService.getMissionById(missionId);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
