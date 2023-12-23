@@ -1,3 +1,4 @@
+import { FindProjectDto } from '@/project/dto/find-project.dto';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from '@/project/dto/create-project.dto';
@@ -6,6 +7,7 @@ import { User } from '@/user/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ProjectService {
@@ -23,8 +25,10 @@ export class ProjectService {
     return project;
   }
 
-  async findProjectDetailById(projectId: string) {
-    const project = await this.projectRepository
+  async getProjectList(page: number, limit: number, query: FindProjectDto) {
+    const { name, status, created_by_ids, sort_by, order_by } = query;
+
+    let qb = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.missions', 'missions')
       .leftJoinAndSelect('project.created_by', 'project_created_by')
@@ -32,6 +36,36 @@ export class ProjectService {
       .leftJoinAndSelect('missions.participants', 'participants')
       .leftJoinAndSelect('missions.created_by', 'mission_created_by')
       .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
+      .leftJoinAndSelect('participants.avatar', 'participant_avatar');
+
+    if (name) {
+      qb.where('(LOWER(project.name) LIKE LOWER(:name))', {
+        name: `%${name}%`,
+      });
+    }
+
+    if (status) {
+      qb.andWhere('project.status IN (:...status)', { status });
+    }
+
+    if (created_by_ids) {
+      qb.andWhere('project.created_by_id IN (:...created_by_ids)', { created_by_ids });
+    }
+
+    qb.orderBy(`project.${sort_by}`, order_by, 'NULLS LAST').orderBy('missions.created_at', 'ASC');
+
+    return paginate<Project>(qb, { page, limit });
+  }
+
+  async findProjectDetailById(projectId: string) {
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.missions', 'missions')
+      // .leftJoinAndSelect('project.created_by', 'project_created_by')
+      // .leftJoinAndSelect('project_created_by.avatar', 'project_created_by_avatar')
+      .leftJoinAndSelect('missions.participants', 'participants')
+      // .leftJoinAndSelect('missions.created_by', 'mission_created_by')
+      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
       .leftJoinAndSelect('participants.avatar', 'participant_avatar')
       .orderBy('missions.created_at', 'ASC')
       .where('project.id = :projectId', { projectId })

@@ -28,11 +28,13 @@ export class MissionService {
   }
 
   async createMission(user: User, createMissionDto: CreateMissionDto) {
-    const { project_id, participantIds, ...createMissionParams } = createMissionDto;
+    const { project_id, participant_ids, ...createMissionParams } = createMissionDto;
 
     await this.projectService.findProjectById(project_id);
 
-    const participants = participantIds ? await this.userService.findUserByIds(participantIds) : [];
+    const participants = participant_ids
+      ? await this.userService.findUserByIds(participant_ids)
+      : [];
 
     const savedMission = await this.missionRepository.save({
       ...createMissionParams,

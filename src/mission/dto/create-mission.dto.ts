@@ -23,5 +23,5 @@ export class CreateMissionDto {
   @IsOptional()
   @IsArray()
   @IsUUID(undefined, { each: true })
-  participantIds: Array<string>;
+  participant_ids: Array<string>;
 }
