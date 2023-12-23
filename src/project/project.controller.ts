@@ -3,7 +3,7 @@ import { GetUser } from '@/decorators/get-user.decorator';
 import { CreateProjectDto } from '@/project/dto/create-project.dto';
 import { ProjectService } from '@/project/project.service';
 import { User } from '@/user/entities/user.entity';
-import { Body, Controller, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 
 @Controller('project')
 export class ProjectController {
@@ -17,10 +17,16 @@ export class ProjectController {
 
   @Patch('/:projectId')
   @UseGuards(JwtAuthGuard)
-  async updateProject(
+  async updateProjectById(
     @Param('projectId') projectId: string,
     @Body() createProjectDto: CreateProjectDto
   ) {
     return this.projectService.updateProject(projectId, createProjectDto);
+  }
+
+  @Get('/:projectId')
+  @UseGuards(JwtAuthGuard)
+  async getProjectById(@Param('projectId') projectId: string) {
+    return this.projectService.findProjectDetailById(projectId);
   }
 }
