@@ -1,9 +1,9 @@
 import { BaseEntity } from '@/commons/entities/base.entity';
 import { ProjectStatus } from '@/commons/enums/project-status.enum';
 import { TableDB } from '@/commons/enums/table-db.enum';
-import { User } from '@/user/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
 import { Mission } from '@/mission/entities/mission.entity';
+import { User } from '@/user/entities/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity(TableDB.PROJECT)
 export class Project extends BaseEntity {

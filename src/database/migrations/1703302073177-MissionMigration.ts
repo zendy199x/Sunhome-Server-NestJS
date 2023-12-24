@@ -20,7 +20,7 @@ export class MissionMigration1703302073177 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'describe',
+            name: 'description',
             type: 'varchar',
           },
           {

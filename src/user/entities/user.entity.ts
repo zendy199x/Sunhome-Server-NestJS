@@ -4,6 +4,7 @@ import { UserRole } from '@/commons/enums/user-role.enum';
 import { File } from '@/file/entities/file.entity';
 import { Mission } from '@/mission/entities/mission.entity';
 import { Project } from '@/project/entities/project.entity';
+import { Report } from '@/report/entities/report.entity';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -57,4 +58,10 @@ export class User extends BaseEntity {
 
   @ManyToMany(() => Mission, (mission) => mission.participants)
   participated_missions: Mission[];
+
+  @OneToMany(() => Report, (report) => report.sender)
+  sent_reports: Report[];
+
+  @OneToMany(() => Report, (report) => report.mission)
+  reports: Report[];
 }

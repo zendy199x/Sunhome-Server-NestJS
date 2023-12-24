@@ -4,6 +4,7 @@ import { DatabaseModule } from '@/database/sql/database.module';
 import { FileModule } from '@/file/file.module';
 import { MissionModule } from '@/mission/mission.module';
 import { ProjectModule } from '@/project/project.module';
+import { ReportModule } from '@/report/report.module';
 import { configValidationSchema } from '@/schemas/config.schema';
 import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
@@ -26,6 +27,7 @@ import { AppController } from './app.controller';
     FileModule,
     MissionModule,
     ProjectModule,
+    ReportModule,
   ],
   controllers: [AppController],
 })

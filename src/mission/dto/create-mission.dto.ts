@@ -9,7 +9,7 @@ export class CreateMissionDto {
   name: string;
 
   @IsString()
-  describe: string;
+  description: string;
 
   @IsNumber()
   total_cost: number;

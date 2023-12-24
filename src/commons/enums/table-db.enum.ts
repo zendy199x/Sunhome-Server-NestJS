@@ -4,4 +4,5 @@ export enum TableDB {
   MISSION = 'mission',
   PROJECT = 'project',
   MISSION_PARTICIPANTS = 'mission_participants',
+  REPORT = 'report'
 }

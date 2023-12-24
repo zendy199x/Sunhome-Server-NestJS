@@ -8,7 +8,7 @@ export class UpdateMissionDto {
 
   @IsOptional()
   @IsString()
-  describe: string;
+  description: string;
 
   @IsOptional()
   @IsNumber()

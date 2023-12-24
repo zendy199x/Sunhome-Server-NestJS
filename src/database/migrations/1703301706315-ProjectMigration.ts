@@ -1,5 +1,5 @@
-import { ProjectStatus } from '@/commons/enums/project-status.enum';
 import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from 'typeorm';
+import { ProjectStatus } from '../../commons/enums/project-status.enum';
 import { TableDB } from '../../commons/enums/table-db.enum';
 
 export class ProjectMigration1703301706315 implements MigrationInterface {

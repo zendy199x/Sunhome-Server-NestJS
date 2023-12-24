@@ -1,17 +1,18 @@
-import { Project } from '@/project/entities/project.entity';
 import { BaseEntity } from '@/commons/entities/base.entity';
 import { MissionStatus } from '@/commons/enums/mission-status.enum';
 import { TableDB } from '@/commons/enums/table-db.enum';
+import { Project } from '@/project/entities/project.entity';
+import { Report } from '@/report/entities/report.entity';
 import { User } from '@/user/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity(TableDB.MISSION)
 export class Mission extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })
-  describe: string;
+  description: string;
 
   @Column({ type: 'real', default: 0 })
   total_cost: number;
@@ -23,16 +24,19 @@ export class Mission extends BaseEntity {
     type: 'enum',
     enum: MissionStatus,
     default: MissionStatus.TO_DO,
+    nullable: true,
   })
   status: MissionStatus;
 
   @Column({
     type: 'uuid',
+    nullable: true,
   })
   created_by_id: string;
 
   @Column({
     type: 'uuid',
+    nullable: true,
   })
   project_id: string;
 
@@ -57,4 +61,9 @@ export class Mission extends BaseEntity {
     inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
   })
   participants: User[];
+
+  @OneToMany(() => Report, (report) => report.mission, {
+    cascade: true,
+  })
+  reports: Report[];
 }
