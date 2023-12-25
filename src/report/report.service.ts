@@ -6,6 +6,7 @@ import { Report } from '@/report/entities/report.entity';
 import { User } from '@/user/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { paginate } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -21,6 +22,8 @@ export class ReportService {
   async findReportRecordDetailById(reportRecordId: string) {
     const reportRecord = await this.reportRepository
       .createQueryBuilder('report')
+      .leftJoinAndSelect('report.sender', 'sender')
+      .leftJoinAndSelect('sender.avatar', 'sender_avatar')
       .leftJoinAndSelect('report.files', 'files')
       .where('report.id = :reportRecordId', { reportRecordId })
       .orderBy('files.report_file_order', 'ASC')
@@ -31,6 +34,22 @@ export class ReportService {
     }
 
     return reportRecord;
+  }
+
+  async getReportDetail(page: number, limit: number, missionId: string, participantId: string) {
+    await this.missionService.checkParticipantJoinMission(missionId, participantId);
+
+    const qb = await this.reportRepository
+      .createQueryBuilder('report')
+      .leftJoinAndSelect('report.sender', 'sender')
+      .leftJoinAndSelect('sender.avatar', 'sender_avatar')
+      .leftJoinAndSelect('report.files', 'files')
+      .where('report.mission_id = :missionId', { missionId })
+      .andWhere('report.participant_id = :participantId', { participantId })
+      .orderBy('report.created_at', 'DESC')
+      .orderBy('files.report_file_order', 'ASC');
+
+    return paginate<Report>(qb, { page, limit });
   }
 
   async createReportRecord(

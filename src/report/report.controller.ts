@@ -5,9 +5,12 @@ import { ReportService } from '@/report/report.service';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -23,6 +26,17 @@ export class ReportController {
   @UseGuards(JwtAuthGuard)
   async getReportRecordDetailById(@Param('reportRecordId') reportRecordId: string) {
     return this.reportService.findReportRecordDetailById(reportRecordId);
+  }
+
+  @Get('/:missionId/:participantId')
+  @UseGuards(JwtAuthGuard)
+  async getReportDetail(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit,
+    @Param('missionId') missionId: string,
+    @Param('participantId') participantId: string
+  ) {
+    return this.reportService.getReportDetail(page, limit, missionId, participantId);
   }
 
   @Post()
