@@ -67,7 +67,7 @@ export class UserService {
       await this.fileService.deletePublicFile(avatarId);
     }
 
-    const avatar = await this.fileService.uploadPublicFile(file);
+    const avatar = await this.fileService.uploadSingleFile(file);
     await this.userRepository.save({ ...user, avatar });
 
     return this.getDetailUserByUserId(userId);

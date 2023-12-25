@@ -9,8 +9,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Mission, User, Report]), UserModule, ProjectModule],
+  imports: [TypeOrmModule.forFeature([Mission, Report]), UserModule, ProjectModule],
   controllers: [MissionController],
   providers: [MissionService],
+  exports: [MissionService],
 })
 export class MissionModule {}

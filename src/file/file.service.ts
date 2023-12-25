@@ -16,7 +16,7 @@ export class FileService {
     private configService: ConfigService
   ) {}
 
-  async uploadPublicFile(file: Express.Multer.File): Promise<File> {
+  async uploadSingleFile(file: Express.Multer.File): Promise<File> {
     const { buffer, originalname, size, mimetype } = file;
 
     const s3 = new S3();
@@ -41,8 +41,8 @@ export class FileService {
     return newFile;
   }
 
-  async uploadMultiplePublicFile(files: Array<Express.Multer.File>): Promise<Array<File>> {
-    const promiseUploadFile = files.map((file) => this.uploadPublicFile(file));
+  async uploadMultipleFile(files: Array<Express.Multer.File>): Promise<Array<File>> {
+    const promiseUploadFile = files.map((file) => this.uploadSingleFile(file));
 
     return await Promise.all(promiseUploadFile);
   }
@@ -63,5 +63,13 @@ export class FileService {
       .promise();
 
     await this.fileRepository.delete(fileId);
+  }
+
+  async uploadFileReportRecord(fileUploaded: File, reportId: string, reportOrder: number) {
+    return await this.fileRepository.save({
+      ...fileUploaded,
+      report_id: reportId,
+      report_file_order: reportOrder,
+    });
   }
 }

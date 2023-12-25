@@ -13,9 +13,6 @@ export class Report extends BaseEntity {
   @Column({ type: 'uuid' })
   participant_id: string;
 
-  @Column({ type: 'uuid' })
-  sender_id: string;
-
   @Column({ type: 'real', default: 0, nullable: true })
   new_usage_cost: number;
 
@@ -24,6 +21,9 @@ export class Report extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   content: string;
+
+  @Column({ type: 'uuid' })
+  sender_id: string;
 
   @ManyToOne(() => Mission, (mission) => mission.reports, {
     onDelete: 'CASCADE',

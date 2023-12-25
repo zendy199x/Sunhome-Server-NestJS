@@ -12,7 +12,7 @@ export class FileController {
   @Post('/upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadPublicFile(@UploadedFile() file: Express.Multer.File): Promise<File> {
-    return this.fileService.uploadPublicFile(file);
+    return this.fileService.uploadSingleFile(file);
   }
 
   @Post('/upload/multiple')
@@ -20,6 +20,6 @@ export class FileController {
   uploadMultiplePublicFile(
     @UploadedFiles() files: Array<Express.Multer.File>
   ): Promise<Array<File>> {
-    return this.fileService.uploadMultiplePublicFile(files);
+    return this.fileService.uploadMultipleFile(files);
   }
 }

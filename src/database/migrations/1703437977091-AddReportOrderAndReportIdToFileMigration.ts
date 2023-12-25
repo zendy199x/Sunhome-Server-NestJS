@@ -1,9 +1,4 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-  TableColumn,
-  TableForeignKey
-} from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey } from 'typeorm';
 import { TableDB } from '../../commons/enums/table-db.enum';
 
 export class AddReportOrderAndReportIdToFileMigration1703437977091 implements MigrationInterface {
@@ -15,7 +10,7 @@ export class AddReportOrderAndReportIdToFileMigration1703437977091 implements Mi
         isNullable: true,
       }),
       new TableColumn({
-        name: 'report_order',
+        name: 'report_file_order',
         type: 'int',
         isNullable: true,
       }),
@@ -38,6 +33,6 @@ export class AddReportOrderAndReportIdToFileMigration1703437977091 implements Mi
       (fk) => fk.columnNames.indexOf('report_id') !== -1
     );
     await queryRunner.dropForeignKeys(TableDB.FILE, [reportByForeignKey]);
-    await queryRunner.dropColumns(TableDB.FILE, ['report_id', 'report_order']);
+    await queryRunner.dropColumns(TableDB.FILE, ['report_id', 'report_file_order']);
   }
 }

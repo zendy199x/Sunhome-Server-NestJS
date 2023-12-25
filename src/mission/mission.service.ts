@@ -15,8 +15,6 @@ export class MissionService {
   constructor(
     @InjectRepository(Mission)
     private missionRepository: Repository<Mission>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
 
     private userService: UserService,
     private projectService: ProjectService
@@ -78,6 +76,18 @@ export class MissionService {
 
   //   return user;
   // }
+
+  async checkParticipantJoinMission(missionId: string, userId: string) {
+    await this.userService.findUserById(userId);
+    const mission = await this.findMissionDetailById(missionId);
+
+    const user = mission.participants.find((participant) => participant.id === userId);
+
+    if (!user) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('User'));
+    }
+    return user;
+  }
 
   async createMission(user: User, createMissionDto: CreateMissionDto): Promise<Mission> {
     const { project_id, participant_ids, ...createMissionParams } = createMissionDto;
