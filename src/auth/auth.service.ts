@@ -125,6 +125,6 @@ export class AuthService {
       password: hashedNewPassword,
     });
 
-    return this.userService.getDetailUserByUserId(user.id);
+    return this.userService.getUserDetailByUserId(user.id);
   }
 }

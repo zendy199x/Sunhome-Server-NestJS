@@ -1,5 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from 'typeorm';
-import { MissionStatus } from '../../commons/enums/mission-status.enum';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 import { TableDB } from '../../commons/enums/table-db.enum';
 
 export class ReportMigration1703436986063 implements MigrationInterface {

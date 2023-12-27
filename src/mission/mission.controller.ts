@@ -29,15 +29,6 @@ export class MissionController {
     return this.missionService.getAllParticipantById(missionId);
   }
 
-  // @Get('/participant/:missionId/:userId')
-  // @UseGuards(JwtAuthGuard)
-  // async getParticipantByUserId(
-  //   @Param('missionId') missionId: string,
-  //   @Param('userId') userId: string
-  // ) {
-  //   return this.missionService.getParticipantByUserId(missionId, userId);
-  // }
-
   @Post()
   @UseGuards(JwtAuthGuard)
   async createMission(@GetUser() user: User, @Body() createMissionDto: CreateMissionDto) {

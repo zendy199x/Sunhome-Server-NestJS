@@ -68,15 +68,6 @@ export class MissionService {
     return mission.participants;
   }
 
-  // async getParticipantByUserId(missionId: string, userId: string) {
-  //   await this.userService.findUserById(userId);
-  //   const mission = await this.findMissionDetailById(missionId);
-
-  //   const user = mission.participants.find((participant) => participant.id === userId);
-
-  //   return user;
-  // }
-
   async checkParticipantJoinMission(missionId: string, userId: string) {
     await this.userService.findUserById(userId);
     const mission = await this.findMissionDetailById(missionId);
@@ -163,6 +154,12 @@ export class MissionService {
     const { new_cost } = addTotalCostMissionDto;
 
     await this.missionRepository.increment({ id: missionId }, 'total_cost', new_cost);
+
+    return this.findMissionDetailById(missionId);
+  }
+
+  async addUsageCostMission(missionId: string, newUsageCost: number): Promise<Mission> {
+    await this.missionRepository.increment({ id: missionId }, 'usage_cost', newUsageCost);
 
     return this.findMissionDetailById(missionId);
   }

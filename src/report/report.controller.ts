@@ -2,6 +2,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/decorators/get-user.decorator';
 import { CreateReportRecordDto } from '@/report/dto/create-report-record.entity';
 import { ReportService } from '@/report/report.service';
+import { User } from '@/user/entities/user.entity';
 import {
   Body,
   Controller,
@@ -15,7 +16,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from './../user/entities/user.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('report')

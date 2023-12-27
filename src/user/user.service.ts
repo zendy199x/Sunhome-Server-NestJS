@@ -44,7 +44,7 @@ export class UserService {
     return users;
   }
 
-  async getDetailUserByUserId(userId: string) {
+  async getUserDetailByUserId(userId: string) {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.avatar', 'avatar')
@@ -70,7 +70,7 @@ export class UserService {
     const avatar = await this.fileService.uploadSingleFile(file);
     await this.userRepository.save({ ...user, avatar });
 
-    return this.getDetailUserByUserId(userId);
+    return this.getUserDetailByUserId(userId);
   }
 
   async deleteAvatar(userId: string): Promise<User> {
@@ -82,7 +82,7 @@ export class UserService {
       await this.fileService.deletePublicFile(avatarId);
     }
 
-    return this.getDetailUserByUserId(userId);
+    return this.getUserDetailByUserId(userId);
   }
 
   async getAllUser(query: FilterUserListDto): Promise<User[]> {
@@ -154,6 +154,6 @@ export class UserService {
 
     await this.userRepository.update(userId, updateUserParams);
 
-    return this.getDetailUserByUserId(userId);
+    return this.getUserDetailByUserId(userId);
   }
 }

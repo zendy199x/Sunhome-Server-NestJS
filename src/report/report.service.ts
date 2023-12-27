@@ -87,6 +87,8 @@ export class ReportService {
       );
     }
 
+    await this.missionService.addUsageCostMission(mission_id, new_usage_cost);
+
     return this.findReportRecordDetailById(reportSaved.id);
   }
 }

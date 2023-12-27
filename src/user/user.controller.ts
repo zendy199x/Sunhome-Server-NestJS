@@ -58,7 +58,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   getUserDetail(@GetUser() user: User) {
     const { id: userId } = user;
-    return this.userService.getDetailUserByUserId(userId);
+    return this.userService.getUserDetailByUserId(userId);
   }
 
   @Get('/all')
@@ -79,7 +79,7 @@ export class UserController {
 
   @Get('/:userId')
   getUserById(@Param('userId') userId: string) {
-    return this.userService.getDetailUserByUserId(userId);
+    return this.userService.getUserDetailByUserId(userId);
   }
 
   @Patch()
