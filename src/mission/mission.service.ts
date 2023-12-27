@@ -1,4 +1,5 @@
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
+import { paginateQuery } from '@/helpers/pagination-qb.helper';
 import { AddTotalCostMissionDto } from '@/mission/dto/add-total-cost-mission.dto';
 import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
 import { UpdateMissionDto } from '@/mission/dto/update-mission.dto';
@@ -9,6 +10,7 @@ import { UserService } from '@/user/user.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { FindMissionDto } from '@/mission/dto/find-mission.dto';
 
 @Injectable()
 export class MissionService {
@@ -32,8 +34,8 @@ export class MissionService {
   async findMissionDetailById(missionId: string): Promise<Mission> {
     const mission = await this.missionRepository
       .createQueryBuilder('mission')
-      // .leftJoinAndSelect('mission.created_by', 'mission_created_by')
-      // .leftJoinAndSelect('mission_created_by.avatar', 'mission_create_by_avatar')
+      .leftJoinAndSelect('mission.created_by', 'mission_created_by')
+      .leftJoinAndSelect('mission_created_by.avatar', 'mission_create_by_avatar')
       .leftJoinAndSelect('mission.participants', 'participants')
       .leftJoinAndSelect('participants.avatar', 'participant_avatar')
       .where('mission.id = :missionId', { missionId })
@@ -46,16 +48,40 @@ export class MissionService {
     return mission;
   }
 
-  async getMissionByProjectId(projectId: string) {
-    const missions = await this.missionRepository
+  async getMissionByProjectId(
+    page: number,
+    limit: number,
+    projectId: string,
+    query: FindMissionDto
+  ) {
+    const { name, status, participant_ids, created_by_ids, sort_by, order_by } = query;
+
+    const qb = await this.missionRepository
       .createQueryBuilder('mission')
       .leftJoinAndSelect('mission.participants', 'participants')
       .leftJoinAndSelect('participants.avatar', 'participant_avatar')
       .where('mission.project_id = :projectId', { projectId })
-      .orderBy('participants.created_at', 'ASC')
-      .getMany();
+      .orderBy('participants.created_at', 'ASC');
 
-    return missions;
+    if (name) {
+      qb.andWhere('LOWER(mission.name) LIKE LOWER(:name)', { name: `%${name}%` });
+    }
+
+    if (status) {
+      qb.andWhere('mission.status IN (:...status)', { status });
+    }
+
+    if (participant_ids) {
+      qb.orWhere('participants.id IN (:...participant_ids)', { participant_ids });
+    }
+
+    if (created_by_ids) {
+      qb.orWhere('mission.created_by_id IN (:...created_by_ids)', { created_by_ids });
+    }
+
+    qb.orderBy(`mission.${sort_by}`, order_by, 'NULLS LAST').orderBy('mission.created_at', 'ASC');
+
+    return paginateQuery(qb, page, limit);
   }
 
   async getMissionDetailById(missionId: string) {
@@ -89,12 +115,14 @@ export class MissionService {
       ? await this.userService.findUserByIds(participant_ids)
       : [];
 
-    return this.missionRepository.save({
+    const createdMission = await this.missionRepository.save({
       ...createMissionParams,
       project_id,
       created_by: user,
       participants,
     });
+
+    return createdMission;
   }
 
   async updateMissionById(missionId: string, updateMissionDto: UpdateMissionDto): Promise<Mission> {

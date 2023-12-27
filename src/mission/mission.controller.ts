@@ -2,10 +2,23 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/decorators/get-user.decorator';
 import { AddTotalCostMissionDto } from '@/mission/dto/add-total-cost-mission.dto';
 import { CreateMissionDto } from '@/mission/dto/create-mission.dto';
+import { FindMissionDto } from '@/mission/dto/find-mission.dto';
 import { UpdateMissionDto } from '@/mission/dto/update-mission.dto';
 import { MissionService } from '@/mission/mission.service';
 import { User } from '@/user/entities/user.entity';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 @Controller('mission')
 export class MissionController {
@@ -13,8 +26,13 @@ export class MissionController {
 
   @Get('/all/:projectId')
   @UseGuards(JwtAuthGuard)
-  async getMissionByProjectId(@Param('projectId') projectId: string) {
-    return this.missionService.getMissionByProjectId(projectId);
+  async getMissionByProjectId(
+    @Param('projectId') projectId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit,
+    @Query() query: FindMissionDto
+  ) {
+    return this.missionService.getMissionByProjectId(page, limit, projectId, query);
   }
 
   @Get('/detail/:missionId')

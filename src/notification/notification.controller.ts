@@ -39,6 +39,11 @@ export class NotificationController {
     });
   }
 
+  @Get('/:notificationId')
+  getNotificationDetailById(@Param('notificationId') notificationId: string) {
+    return this.notificationService.getNotificationDetailById(notificationId);
+  }
+
   @Get('/unread-count')
   getUnreadAmount(@GetUser() user: User, @Query() query: FindAllNotificationDto) {
     return this.notificationService.getUnreadAmount(user, query);

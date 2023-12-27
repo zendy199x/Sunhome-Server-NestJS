@@ -28,15 +28,14 @@ export class ReportController {
     return this.reportService.findReportRecordDetailById(reportRecordId);
   }
 
-  @Get('/:missionId/:participantId')
+  @Get('/detail/:missionId')
   @UseGuards(JwtAuthGuard)
-  async getReportDetail(
+  async getMissionReportDetail(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit,
-    @Param('missionId') missionId: string,
-    @Param('participantId') participantId: string
+    @Param('missionId') missionId: string
   ) {
-    return this.reportService.getReportDetail(page, limit, missionId, participantId);
+    return this.reportService.getMissionReportDetail(page, limit, missionId);
   }
 
   @Post()

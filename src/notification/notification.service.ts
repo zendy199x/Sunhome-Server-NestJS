@@ -7,10 +7,12 @@ import {
 import { DeviceService } from '@/device/device.service';
 import { FirebaseAdminService } from '@/firebase-admin/firebase-admin.service';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
+import { MissionService } from '@/mission/mission.service';
 import { FindAllNotificationDto } from '@/notification/dto/find-all-notification.dto';
 import { Notification } from '@/notification/entities/notification.entity';
 import { IFindAllNotification } from '@/notification/interfaces/find-all-notification.interface';
 import { INotificationParams } from '@/notification/interfaces/notification.interface';
+import { Project } from '@/project/entities/project.entity';
 import { User } from '@/user/entities/user.entity';
 import { UserService } from '@/user/user.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -23,10 +25,13 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
 
     private userService: UserService,
     private deviceService: DeviceService,
-    private firebaseAdminService: FirebaseAdminService
+    private firebaseAdminService: FirebaseAdminService,
+    private missionService: MissionService
   ) {}
 
   async findNotificationById(notificationId: string) {
@@ -52,7 +57,22 @@ export class NotificationService {
       throw new NotFoundException(ValidatorConstants.NOT_FOUND('Notification'));
     }
 
-    return notification;
+    const { object_id: missionId } = notification;
+
+    const mission = await this.missionService.findMissionById(missionId);
+
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.id = :projectId', { projectId: mission.project_id })
+      .leftJoinAndSelect('project.missions', 'missions', 'missions.id = :missionId', {
+        missionId,
+      })
+      .getOne();
+
+    return {
+      notification,
+      metadata: project,
+    };
   }
 
   async createPushNotification(
@@ -62,15 +82,16 @@ export class NotificationService {
     objectId: string,
     relatedObjectId: string,
     senderId: string,
-    target: User
+    target: User,
+    metadata?: any
   ) {
     const [devices, actorProfile] = await Promise.all([
-      this.deviceService.findByUserId(target.id),
+      this.deviceService.findDeviceByUserId(target.id),
       this.userService.findUserById(senderId),
     ]);
 
     const title = notificationTitleByType(type, actorProfile.username);
-    const body = notificationActionByType(type, actorProfile.username, relatedObjectId);
+    const body = notificationActionByType(type, actorProfile.username);
 
     const unreadNotificationAmount = await this.unreadNotificationAmount(objectId);
 
@@ -96,12 +117,13 @@ export class NotificationService {
           id: String(id),
           title,
           content: body,
-          objectType: objectType.toLocaleLowerCase(),
-          objectId: String(objectId),
-          relatedObjectId: String(relatedObjectId),
+          object_type: objectType.toLocaleLowerCase(),
+          object_id: String(objectId),
+          related_object_id: String(relatedObjectId),
           type: type.toLocaleLowerCase(),
-          actorId: String(senderId),
-          targetId: String(target.id),
+          actor_id: String(senderId),
+          target_id: String(target.id),
+          metadata,
         };
 
         return this.firebaseAdminService.sendMessage(message, device.fcm_token);
@@ -109,7 +131,7 @@ export class NotificationService {
     );
   }
 
-  async sendNotification(notificationId: string) {
+  async sendNotification(notificationId: string, metadata?: any) {
     const { type, actor, target, object_id, related_object_id, object_type } =
       await this.notificationRepository.findOne({
         where: { id: notificationId },
@@ -123,17 +145,18 @@ export class NotificationService {
       object_type,
       related_object_id,
       actor.id,
-      target
+      target,
+      metadata
     );
   }
 
   async createNotification(params: INotificationParams) {
-    const { type, actorId, targetId, relatedObjectId, ...rest } = params;
+    const { type, actorId, targetId, relatedObjectId, metadata, ...rest } = params;
 
     const actorProfile = await this.userService.findUserById(actorId);
 
     const title = notificationTitleByType(type, actorProfile.username);
-    const body = notificationActionByType(type, actorProfile.username, relatedObjectId);
+    const body = notificationActionByType(type, actorProfile.username);
 
     const { identifiers }: InsertResult = await this.notificationRepository.insert({
       ...rest,
@@ -145,8 +168,8 @@ export class NotificationService {
       related_object_id: relatedObjectId,
     });
 
-    const { id } = identifiers[0];
-    return this.sendNotification(id);
+    const { id: notificationId } = identifiers[0];
+    return this.sendNotification(notificationId, metadata);
   }
 
   async markNotificationAsRead(user: User, notificationId: string) {
@@ -171,10 +194,10 @@ export class NotificationService {
 
     qb.set({ read_at: () => 'NOW()' });
 
-    qb.where('targetableId = :userId', { userId }).andWhere('readAt IS NULL');
+    qb.where('target_id = :userId', { userId }).andWhere('read_at IS NULL');
 
     if (object_types) {
-      qb.andWhere('objectType IN (:...object_types)', {
+      qb.andWhere('object_type IN (:...object_types)', {
         object_types,
       });
     }
@@ -224,8 +247,27 @@ export class NotificationService {
       notification_types
     );
 
+    const itemsWithMetadata = await Promise.all(
+      items.map(async (item) => {
+        const { object_id: missionId } = item;
+        const mission = await this.missionService.findMissionById(missionId);
+        const project = await this.projectRepository
+          .createQueryBuilder('project')
+          .where('project.id = :projectId', { projectId: mission.project_id })
+          .leftJoinAndSelect('project.missions', 'missions', 'missions.id = :missionId', {
+            missionId,
+          })
+          .getOne();
+
+        return {
+          item,
+          metadata: project,
+        };
+      })
+    );
+
     return {
-      items: items,
+      items: itemsWithMetadata,
       meta: {
         totalItems,
         itemCount: items.length,
@@ -259,7 +301,7 @@ export class NotificationService {
 
     let qb = await this.notificationRepository
       .createQueryBuilder('notification')
-      .where('notification.targetableId = :userId', { userId });
+      .where('notification.target_id = :userId', { userId });
 
     if (objectTypes) {
       qb.andWhere('notification.object_type IN (:...objectTypes)', {
@@ -273,7 +315,7 @@ export class NotificationService {
       });
     }
 
-    qb.orderBy('notification.createdAt', 'DESC');
+    qb.orderBy('notification.created_at', 'DESC');
 
     return qb;
   }
@@ -284,18 +326,18 @@ export class NotificationService {
     notificationTypes?: NotificationType[]
   ) {
     let qb = await this.notificationRepository
-      .createQueryBuilder('notify')
-      .where('notify.targetableId = :userId', { userId })
-      .andWhere('notify.readAt IS NULL');
+      .createQueryBuilder('notification')
+      .where('notification.target_id = :userId', { userId })
+      .andWhere('notification.read_at IS NULL');
 
     if (objectTypes) {
-      qb.andWhere('notify.objectable_type IN (:...objectTypes)', {
+      qb.andWhere('notification.object_type IN (:...objectTypes)', {
         objectTypes,
       });
     }
 
     if (notificationTypes) {
-      qb.andWhere('notify.type IN (:...notificationTypes)', {
+      qb.andWhere('notification.type IN (:...notificationTypes)', {
         notificationTypes,
       });
     }

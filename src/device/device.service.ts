@@ -49,11 +49,11 @@ export class DeviceService {
     return this.deviceRepository.delete({ fcm_token: fcmToken });
   }
 
-  async findByUserId(userId: string) {
+  async findDeviceByUserId(userId: string) {
     return this.deviceRepository
       .createQueryBuilder('device')
       .innerJoin(TableDB.USER_DEVICE, 'user_device', 'user_device.device_id = device.id')
-      .where('user_device.userId = :userId', { userId })
+      .where('user_device.user_id = :userId', { userId })
       .getMany();
   }
 }

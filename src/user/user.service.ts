@@ -1,12 +1,12 @@
 import { FileService } from '@/file/file.service';
 import { ValidatorConstants } from '@/helpers/constants/validator.constant';
+import { paginateQuery } from '@/helpers/pagination-qb.helper';
 import { FilterUserListDto } from '@/user/dto/filter-user-list.dto';
 import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { User } from '@/user/entities/user.entity';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { paginate } from 'nestjs-typeorm-paginate';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
@@ -86,7 +86,7 @@ export class UserService {
   }
 
   async getAllUser(query: FilterUserListDto): Promise<User[]> {
-    const { username, role, orderBy } = query;
+    const { username, roles, orderBy } = query;
 
     const qb = this.userRepository
       .createQueryBuilder('user')
@@ -96,19 +96,19 @@ export class UserService {
       qb.andWhere('LOWER(user.username) LIKE LOWER(:username)', { username: `%${username}%` });
     }
 
-    if (role) {
-      qb.andWhere('user.role IN (:...role)', { role });
+    if (roles) {
+      qb.andWhere('user.role IN (:...roles)', { roles });
     }
 
     if (orderBy) {
-      qb.orderBy('user.createdAt', orderBy);
+      qb.orderBy('user.created_at', orderBy);
     }
 
     return qb.getMany();
   }
 
   async getUserList(page: number, limit: number, query: FilterUserListDto): Promise<any> {
-    const { username, role, orderBy } = query;
+    const { username, roles, orderBy } = query;
 
     const qb = this.userRepository
       .createQueryBuilder('user')
@@ -118,15 +118,15 @@ export class UserService {
       qb.andWhere('LOWER(user.username) LIKE LOWER(:username)', { username: `%${username}%` });
     }
 
-    if (role) {
-      qb.andWhere('user.role IN (:...role)', { role });
+    if (roles) {
+      qb.andWhere('user.role IN (:...roles)', { roles });
     }
 
     if (orderBy) {
-      qb.orderBy('user.createdAt', orderBy);
+      qb.orderBy('user.created_at', orderBy);
     }
 
-    return paginate<User>(qb, { page, limit });
+    return paginateQuery(qb, page, limit);
   }
 
   async updateUser(user: User, updateUserDto: UpdateUserDto): Promise<User> {

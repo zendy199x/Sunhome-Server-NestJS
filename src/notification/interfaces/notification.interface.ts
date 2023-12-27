@@ -7,4 +7,5 @@ export interface INotificationParams {
   relatedObjectId?: string;
   actorId: string;
   targetId: string;
+  metadata?: any;
 }

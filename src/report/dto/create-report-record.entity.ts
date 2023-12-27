@@ -5,9 +5,6 @@ export class CreateReportRecordDto {
   @IsUUID()
   mission_id: string;
 
-  @IsUUID()
-  participant_id: string;
-
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsNumber()

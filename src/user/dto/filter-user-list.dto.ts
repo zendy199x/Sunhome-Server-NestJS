@@ -11,7 +11,7 @@ export class FilterUserListDto {
   @IsEnum(UserRole, { each: true })
   @IsString({ each: true })
   @Type(() => String)
-  role: UserRole[];
+  roles: UserRole[];
 
   @IsOptional()
   @IsString()

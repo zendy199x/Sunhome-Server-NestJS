@@ -18,10 +18,6 @@ export class ReportMigration1703436986063 implements MigrationInterface {
             type: 'uuid',
           },
           {
-            name: 'participant_id',
-            type: 'uuid',
-          },
-          {
             name: 'sender_id',
             type: 'uuid',
           },
@@ -60,12 +56,6 @@ export class ReportMigration1703436986063 implements MigrationInterface {
             onDelete: 'CASCADE',
           }),
           new TableForeignKey({
-            columnNames: ['participant_id'],
-            referencedTableName: TableDB.USER,
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
-          }),
-          new TableForeignKey({
             columnNames: ['sender_id'],
             referencedTableName: TableDB.USER,
             referencedColumnNames: ['id'],
@@ -82,17 +72,10 @@ export class ReportMigration1703436986063 implements MigrationInterface {
     const missionByForeignKey = reportTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('mission_id') !== -1
     );
-    const participantForeignKey = reportTable.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('participant_id') !== -1
-    );
     const senderForeignKey = reportTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('sender_id') !== -1
     );
-    await queryRunner.dropForeignKeys(TableDB.MISSION, [
-      missionByForeignKey,
-      participantForeignKey,
-      senderForeignKey,
-    ]);
+    await queryRunner.dropForeignKeys(TableDB.MISSION, [missionByForeignKey, senderForeignKey]);
 
     await queryRunner.dropTable(TableDB.REPORT);
   }

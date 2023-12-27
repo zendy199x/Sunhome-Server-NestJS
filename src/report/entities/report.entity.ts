@@ -10,9 +10,6 @@ export class Report extends BaseEntity {
   @Column({ type: 'uuid' })
   mission_id: string;
 
-  @Column({ type: 'uuid' })
-  participant_id: string;
-
   @Column({ type: 'real', default: 0, nullable: true })
   new_usage_cost: number;
 

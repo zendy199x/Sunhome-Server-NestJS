@@ -1,14 +1,14 @@
-import { ProjectStatus } from '@/commons/enums/project-status.enum';
+import { MissionStatus } from '@/commons/enums/mission-status.enum';
 import { IsArray, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class FindProjectDto {
+export class FindMissionDto {
   @IsOptional()
   @IsString()
   name: string;
 
   @IsOptional()
-  @IsEnum(ProjectStatus, { each: true })
-  status: ProjectStatus[];
+  @IsEnum(MissionStatus, { each: true })
+  status: MissionStatus[];
 
   @IsOptional()
   @IsArray()

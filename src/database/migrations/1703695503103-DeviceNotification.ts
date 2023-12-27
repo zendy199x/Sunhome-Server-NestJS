@@ -20,12 +20,12 @@ export class DeviceNotification1703695503103 implements MigrationInterface {
             isUnique: true,
           },
           {
-            name: 'createdAt',
+            name: 'created_at',
             type: 'timestamptz',
             default: 'now()',
           },
           {
-            name: 'updatedAt',
+            name: 'updated_at',
             type: 'timestamptz',
             default: 'now()',
           },
