@@ -16,15 +16,31 @@ export class DeviceService {
   async saveUserDevice(user: User, baseDeviceDto: BaseDeviceDto) {
     const { fcm_token } = baseDeviceDto;
 
-    const device = await this.deviceRepository.findOne({
-      where: { fcm_token },
-      relations: { users: true },
-    });
-    if (!device) {
-      return this.deviceRepository.save({ ...baseDeviceDto, users: [user] });
+    try {
+      let device = await this.deviceRepository.findOne({
+        where: { fcm_token },
+        relations: { users: true },
+      });
+
+      if (!device) {
+        device = this.deviceRepository.create({ ...baseDeviceDto, users: [user] });
+        await this.deviceRepository.save(device);
+        return 'Successfully added FCM Token';
+      }
+
+      const userExists = device.users.some((u) => u.id === user.id);
+
+      if (!userExists) {
+        device.users.push(user);
+        await this.deviceRepository.save(device);
+        return 'Successfully added FCM Token';
+      } else {
+        return 'FCM Token is already associated with the user';
+      }
+    } catch (error) {
+      console.error('Error while adding FCM Token:', error.message);
+      throw error;
     }
-    device.users.push(user);
-    return this.deviceRepository.save(device);
   }
 
   async removeUserDevice(userId: string, fcmToken: string) {
@@ -33,8 +49,14 @@ export class DeviceService {
       relations: { users: true },
     });
 
+    if (!device) {
+      return 'Specified FCM Token not found';
+    }
+
     device.users = device.users.filter((user) => user.id !== userId);
-    return this.deviceRepository.save(device);
+    await this.deviceRepository.save(device);
+
+    return 'User is removed from the specified FCM Token';
   }
 
   async removeDeviceByFcmToken(fcmToken: string) {
@@ -49,11 +71,17 @@ export class DeviceService {
     return this.deviceRepository.delete({ fcm_token: fcmToken });
   }
 
-  async findDeviceByUserId(userId: string) {
+  async getFcmTokenByUserId(userId: string) {
     return this.deviceRepository
       .createQueryBuilder('device')
       .innerJoin(TableDB.USER_DEVICE, 'user_device', 'user_device.device_id = device.id')
       .where('user_device.user_id = :userId', { userId })
       .getMany();
+  }
+
+  async removeFcmToken(user: User, fcmToken: string) {
+    const { id: userId } = user;
+
+    return await this.removeUserDevice(userId, fcmToken);
   }
 }

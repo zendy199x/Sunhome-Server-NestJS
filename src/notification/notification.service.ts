@@ -12,7 +12,7 @@ import { FindAllNotificationDto } from '@/notification/dto/find-all-notification
 import { Notification } from '@/notification/entities/notification.entity';
 import { IFindAllNotification } from '@/notification/interfaces/find-all-notification.interface';
 import { INotificationParams } from '@/notification/interfaces/notification.interface';
-import { Project } from '@/project/entities/project.entity';
+import { ProjectService } from '@/project/project.service';
 import { User } from '@/user/entities/user.entity';
 import { UserService } from '@/user/user.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -25,13 +25,12 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
-    @InjectRepository(Project)
-    private projectRepository: Repository<Project>,
 
     private userService: UserService,
     private deviceService: DeviceService,
     private firebaseAdminService: FirebaseAdminService,
-    private missionService: MissionService
+    private missionService: MissionService,
+    private projectService: ProjectService
   ) {}
 
   async findNotificationById(notificationId: string) {
@@ -57,36 +56,30 @@ export class NotificationService {
       throw new NotFoundException(ValidatorConstants.NOT_FOUND('Notification'));
     }
 
-    const { object_id: missionId } = notification;
+    const { object_id: missionId, related_object_id: projectId } = notification;
 
-    const mission = await this.missionService.findMissionById(missionId);
-
-    const project = await this.projectRepository
-      .createQueryBuilder('project')
-      .where('project.id = :projectId', { projectId: mission.project_id })
-      .leftJoinAndSelect('project.missions', 'missions', 'missions.id = :missionId', {
-        missionId,
-      })
-      .getOne();
+    const sender = await this.userService.getUserDetailByUserId(notification.actor_id);
+    const mission = await this.missionService.getMissionDetailById(missionId);
+    const project = await this.projectService.getProjectNotMissionById(projectId);
 
     return {
       notification,
-      metadata: project,
+      metadata: { sender, project, mission },
     };
   }
 
   async createPushNotification(
     id: string,
     type: string,
-    objectType: string,
     objectId: string,
+    objectType: string,
     relatedObjectId: string,
     senderId: string,
     target: User,
     metadata?: any
   ) {
     const [devices, actorProfile] = await Promise.all([
-      this.deviceService.findDeviceByUserId(target.id),
+      this.deviceService.getFcmTokenByUserId(target.id),
       this.userService.findUserById(senderId),
     ]);
 
@@ -102,13 +95,13 @@ export class NotificationService {
           token: device.fcm_token,
           android: {
             notification: {
-              notificationCount: Number(unreadNotificationAmount.unread_count),
+              notificationCount: Number(unreadNotificationAmount),
             },
           },
           apns: {
             payload: {
               aps: {
-                badge: Number(unreadNotificationAmount.unread_count),
+                badge: Number(unreadNotificationAmount),
               },
             },
           },
@@ -123,7 +116,7 @@ export class NotificationService {
           type: type.toLocaleLowerCase(),
           actor_id: String(senderId),
           target_id: String(target.id),
-          metadata,
+          metadata: JSON.stringify(metadata),
         };
 
         return this.firebaseAdminService.sendMessage(message, device.fcm_token);
@@ -151,7 +144,8 @@ export class NotificationService {
   }
 
   async createNotification(params: INotificationParams) {
-    const { type, actorId, targetId, relatedObjectId, metadata, ...rest } = params;
+    const { objectType, type, objectId, relatedObjectId, actorId, targetId, metadata, ...rest } =
+      params;
 
     const actorProfile = await this.userService.findUserById(actorId);
 
@@ -160,9 +154,11 @@ export class NotificationService {
 
     const { identifiers }: InsertResult = await this.notificationRepository.insert({
       ...rest,
+      object_type: objectType,
+      type,
+      object_id: objectId,
       actor: { id: actorId },
       target: { id: targetId },
-      type,
       title,
       content: body,
       related_object_id: relatedObjectId,
@@ -210,7 +206,7 @@ export class NotificationService {
 
     await qb.execute();
 
-    return 'Update notification successfully';
+    return 'Successfully updated notification';
   }
 
   async removeNotification(notificationId: string) {
@@ -218,7 +214,7 @@ export class NotificationService {
 
     await this.notificationRepository.remove(notification);
 
-    return 'Remove notification successfully';
+    return 'Successfully removed notification';
   }
 
   async getTotalItemsFindAll(user: User): Promise<number> {
@@ -249,19 +245,15 @@ export class NotificationService {
 
     const itemsWithMetadata = await Promise.all(
       items.map(async (item) => {
-        const { object_id: missionId } = item;
-        const mission = await this.missionService.findMissionById(missionId);
-        const project = await this.projectRepository
-          .createQueryBuilder('project')
-          .where('project.id = :projectId', { projectId: mission.project_id })
-          .leftJoinAndSelect('project.missions', 'missions', 'missions.id = :missionId', {
-            missionId,
-          })
-          .getOne();
+        const { object_id: missionId, related_object_id: projectId } = item;
+
+        const sender = await this.userService.getUserDetailByUserId(item.actor_id);
+        const mission = await this.missionService.getMissionDetailById(missionId);
+        const project = await this.projectService.getProjectNotMissionById(projectId);
 
         return {
           item,
-          metadata: project,
+          metadata: { sender, project, mission },
         };
       })
     );
@@ -275,7 +267,7 @@ export class NotificationService {
         currentPage: page,
         totalPages,
       },
-      unread_count: unreadNotificationAmount.unread_count,
+      unread_count: unreadNotificationAmount,
     };
   }
 
@@ -342,6 +334,6 @@ export class NotificationService {
       });
     }
 
-    return { unread_count: qb.getCount() };
+    return qb.getCount();
   }
 }

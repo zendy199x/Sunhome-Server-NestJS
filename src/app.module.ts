@@ -1,3 +1,4 @@
+import { AppController } from '@/app.controller';
 import { AuthModule } from '@/auth/auth.module';
 import configuration from '@/configs/configuration';
 import { DatabaseModule } from '@/database/sql/database.module';
@@ -13,7 +14,6 @@ import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AppController } from './app.controller';
 
 @Module({
   imports: [

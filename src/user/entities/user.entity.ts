@@ -1,6 +1,7 @@
 import { BaseEntity } from '@/commons/entities/base.entity';
 import { TableDB } from '@/commons/enums/table-db.enum';
 import { UserRole } from '@/commons/enums/user-role.enum';
+import { Device } from '@/device/entities/device.entity';
 import { File } from '@/file/entities/file.entity';
 import { Mission } from '@/mission/entities/mission.entity';
 import { Project } from '@/project/entities/project.entity';
@@ -58,6 +59,9 @@ export class User extends BaseEntity {
 
   @ManyToMany(() => Mission, (mission) => mission.participants)
   participated_missions: Mission[];
+
+  @ManyToMany(() => Device, (device) => device.users)
+  user_devices: Device[];
 
   @OneToMany(() => Report, (report) => report.sender)
   sent_reports: Report[];

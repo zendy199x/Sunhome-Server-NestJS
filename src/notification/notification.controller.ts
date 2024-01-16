@@ -44,7 +44,7 @@ export class NotificationController {
     return this.notificationService.getNotificationDetailById(notificationId);
   }
 
-  @Get('/unread-count')
+  @Get('/unread/count')
   getUnreadAmount(@GetUser() user: User, @Query() query: FindAllNotificationDto) {
     return this.notificationService.getUnreadAmount(user, query);
   }

@@ -35,7 +35,7 @@ export class ProjectController {
   @Get('/:projectId')
   @UseGuards(JwtAuthGuard)
   async getProjectById(@Param('projectId') projectId: string) {
-    return this.projectService.findProjectDetailById(projectId);
+    return this.projectService.getProjectDetailById(projectId);
   }
 
   @Post()

@@ -23,9 +23,9 @@ export function notificationTitleByType(type: string, _actorName = '') {
 export function notificationActionByType(type: string, actorName = ''): string {
   switch (type) {
     case NotificationType.MANAGER_REPORT:
-      return `Nhân viên ${actorName} đã thêm 1 báo cáo mới`;
-    case NotificationType.MEMBER_REPORT:
       return `Quản lý ${actorName} đã thêm 1 báo cáo mới`;
+    case NotificationType.MEMBER_REPORT:
+      return `Nhân viên ${actorName} đã thêm 1 báo cáo mới`;
     default:
       return '';
   }

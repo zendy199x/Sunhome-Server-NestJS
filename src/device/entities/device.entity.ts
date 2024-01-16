@@ -8,10 +8,13 @@ export class Device extends BaseEntity {
   @Column({ unique: true })
   fcm_token: string;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.user_devices, {
+    cascade: true,
+  })
   @JoinTable({
     name: TableDB.USER_DEVICE,
     joinColumn: { name: 'device_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
   })
   users: User[];
 }

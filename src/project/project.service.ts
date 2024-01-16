@@ -25,7 +25,7 @@ export class ProjectService {
     return project;
   }
 
-  async findProjectDetailById(projectId: string): Promise<Project> {
+  async getProjectDetailById(projectId: string): Promise<Project> {
     const project = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.missions', 'missions')
@@ -36,6 +36,21 @@ export class ProjectService {
       .leftJoinAndSelect('mission_created_by.avatar', 'mission_created_by_avatar')
       .leftJoinAndSelect('participants.avatar', 'participant_avatar')
       .orderBy('missions.created_at', 'ASC')
+      .where('project.id = :projectId', { projectId })
+      .getOne();
+
+    if (!project) {
+      throw new NotFoundException(ValidatorConstants.NOT_FOUND('Project'));
+    }
+
+    return project;
+  }
+
+  async getProjectNotMissionById(projectId: string): Promise<Project> {
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.created_by', 'project_created_by')
+      .leftJoinAndSelect('project_created_by.avatar', 'project_created_by_avatar')
       .where('project.id = :projectId', { projectId })
       .getOne();
 
@@ -75,7 +90,7 @@ export class ProjectService {
       qb.orWhere('project.created_by_id IN (:...created_by_ids)', { created_by_ids });
     }
 
-    qb.orderBy(`project.${sort_by}`, order_by, 'NULLS LAST').orderBy('missions.created_at', 'ASC');
+    qb.orderBy(`project.${sort_by}`, order_by, 'NULLS LAST');
 
     return paginateQuery(qb, page, limit);
   }
@@ -92,12 +107,12 @@ export class ProjectService {
   async updateProjectById(projectId: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
     const project = await this.findProjectById(projectId);
     await this.projectRepository.save({ ...project, ...updateProjectDto });
-    return this.findProjectDetailById(projectId);
+    return this.getProjectDetailById(projectId);
   }
 
   async deleteProjectById(projectId: string): Promise<string> {
     const project = await this.findProjectById(projectId);
     await this.projectRepository.remove(project);
-    return 'Deleted project successfully';
+    return 'Successfully deleted project';
   }
 }

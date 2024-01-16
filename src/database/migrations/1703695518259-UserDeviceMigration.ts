@@ -62,10 +62,10 @@ export class UserDeviceNotification1703695518259 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const userDeviceTable = await queryRunner.getTable(TableDB.USER_DEVICE);
+
     const userForeignKey = userDeviceTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('user_id') !== -1
     );
-
     const deviceForeignKey = userDeviceTable.foreignKeys.find(
       (fk) => fk.columnNames.indexOf('device_id') !== -1
     );

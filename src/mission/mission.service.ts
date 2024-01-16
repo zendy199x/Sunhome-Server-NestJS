@@ -79,7 +79,11 @@ export class MissionService {
       qb.orWhere('mission.created_by_id IN (:...created_by_ids)', { created_by_ids });
     }
 
-    qb.orderBy(`mission.${sort_by}`, order_by, 'NULLS LAST').orderBy('mission.created_at', 'ASC');
+    qb.where('mission.project_id = :projectId', { projectId }).orderBy(
+      `mission.${sort_by}`,
+      order_by,
+      'NULLS LAST'
+    );
 
     return paginateQuery(qb, page, limit);
   }
@@ -107,13 +111,17 @@ export class MissionService {
   }
 
   async createMission(user: User, createMissionDto: CreateMissionDto): Promise<Mission> {
+    const { id: createdByMissionId } = user;
     const { project_id, participant_ids, ...createMissionParams } = createMissionDto;
 
-    await this.projectService.findProjectById(project_id);
+    const project = await this.projectService.findProjectById(project_id);
+    const createdByProjectId = project.created_by_id;
 
-    const participants = participant_ids
-      ? await this.userService.findUserByIds(participant_ids)
-      : [];
+    const updatedParticipantIds = Array.from(
+      new Set([...participant_ids, createdByProjectId, createdByMissionId])
+    );
+
+    const participants = await this.userService.findUserByIds(updatedParticipantIds);
 
     const createdMission = await this.missionRepository.save({
       ...createMissionParams,
@@ -130,25 +138,29 @@ export class MissionService {
 
     const mission = await this.findMissionDetailById(missionId);
 
-    const existingParticipantIds = mission.participants.map((participant) => participant.id);
+    if (participant_ids) {
+      const projectId = mission.project_id;
+      const project = await this.projectService.findProjectById(projectId);
+      const createdByProjectId = project.created_by_id;
+      const createdByMissionId = mission.created_by_id;
 
-    const participantsToAdd = participant_ids
-      ? await this.findParticipantsByIds(
-          participant_ids.filter((id) => !existingParticipantIds.includes(id))
-        )
-      : [];
+      const updatedParticipantIds = Array.from(
+        new Set([...participant_ids, createdByProjectId, createdByMissionId])
+      );
 
-    const participantsToDelete = mission.participants.filter(
-      (participant) => participant_ids && !participant_ids.includes(participant.id)
-    );
+      const newParticipants = await this.findParticipantsByIds(updatedParticipantIds);
 
-    await this.missionRepository.save({
-      ...mission,
-      ...updateMissionParams,
-      participants: [...mission.participants, ...participantsToAdd],
-    });
-
-    await this.removeParticipantsFromMission(mission, participantsToDelete);
+      await this.missionRepository.save({
+        ...mission,
+        ...updateMissionParams,
+        participants: newParticipants,
+      });
+    } else {
+      await this.missionRepository.save({
+        ...mission,
+        ...updateMissionParams,
+      });
+    }
 
     return this.findMissionDetailById(missionId);
   }
@@ -157,22 +169,12 @@ export class MissionService {
     return this.userService.findUserByIds(userIds);
   }
 
-  async removeParticipantsFromMission(mission: Mission, participants: User[]): Promise<void> {
-    if (participants.length > 0) {
-      await this.missionRepository
-        .createQueryBuilder()
-        .relation(Mission, 'participants')
-        .of(mission)
-        .remove(participants);
-    }
-  }
-
   async deleteMissionById(missionId: string): Promise<string> {
     const mission = await this.findMissionById(missionId);
 
     await this.missionRepository.remove(mission);
 
-    return 'Deleted mission successfully';
+    return 'Successfully deleted mission';
   }
 
   async addTotalCostMission(
